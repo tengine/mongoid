@@ -2,16 +2,12 @@ require "spec_helper"
 
 describe Mongoid::NamedScope do
 
-  before do
-    [ Person, Player ].each(&:delete_all)
-  end
-
   describe ".scope" do
 
     before(:all) do
       Person.class_eval do
         scope :doctors, {:where => {:title => 'Dr.'} }
-        scope :old, criteria.where(:age.gt => 50)
+        scope :semiold, criteria.where(:age.gt => 50)
         scope :alki, where(:blood_alcohol_content.gt => 0.3).order_by(:blood_alcohol_content.asc)
       end
     end
@@ -23,10 +19,6 @@ describe Mongoid::NamedScope do
         :terms => true,
         :ssn => "123-22-8346"
       )
-    end
-
-    after do
-      Person.delete_all
     end
 
     it "adds a class method for the scope" do
@@ -55,21 +47,21 @@ describe Mongoid::NamedScope do
     context "accessing a single named scope" do
 
       it "returns the document" do
-        Person.doctors.first.should == document
+        Person.doctors.first.should eq(document)
       end
     end
 
     context "chaining named scopes" do
 
       it "returns the document" do
-        Person.old.doctors.first.should == document
+        Person.old.doctors.first.should eq(document)
       end
     end
 
     context "mixing named scopes and class methods" do
 
       it "returns the document" do
-        Person.accepted.old.doctors.first.should == document
+        Person.accepted.old.doctors.first.should eq(document)
       end
     end
 
@@ -81,58 +73,75 @@ describe Mongoid::NamedScope do
         Person.create(:blood_alcohol_content => 0.7, :ssn => "125-22-8346")
       end
 
+      let(:docs) do
+        Person.alki
+      end
+
       it "sorts the results" do
-        docs = Person.alki
-        docs.first.blood_alcohol_content.should == 0.4
+        docs.first.blood_alcohol_content.should eq(0.4)
       end
     end
 
     context "when an class attribute is defined" do
 
-      it "should be accessible" do
-        Person.somebody_elses_important_class_options.should == { :keep_me_around => true }
+      it "is accessible" do
+        Person.somebody_elses_important_class_options.should eq(
+          { :keep_me_around => true }
+        )
       end
-
     end
 
     context "when calling scopes on parent classes" do
 
       it "inherits the scope" do
-        Doctor.minor.should == []
+        Doctor.minor.should be_empty
       end
 
       it "inherits the class attribute methods" do
-        Doctor.somebody_elses_important_class_options.should == { :keep_me_around => true }
+        Doctor.somebody_elses_important_class_options.should eq(
+          { :keep_me_around => true }
+        )
       end
     end
 
     context "when overwriting an existing scope" do
 
-      it "logs warnings per default" do
-        require 'stringio'
-        log_io = StringIO.new
-        Mongoid.logger = ::Logger.new(log_io)
-        Mongoid.scope_overwrite_exception = false
+      require "stringio"
 
-        Person.class_eval do
-          scope :old, criteria.where(:age.gt => 67)
-        end
-
-        log_io.rewind
-        log_io.readlines.join.should =~
-          /Creating scope :old. Overwriting existing method Person.old/
+      let(:log_io) do
+        StringIO.new
       end
 
-      it "throws exception if configured with scope_overwrite_exception = true" do
-        Mongoid.scope_overwrite_exception = true
-        lambda {
+      context "when not overwriting exceptions" do
+
+        before do
+          Mongoid.scope_overwrite_exception = false
+          Mongoid.logger = ::Logger.new(log_io)
           Person.class_eval do
             scope :old, criteria.where(:age.gt => 67)
           end
-        }.should raise_error(
-          Mongoid::Errors::ScopeOverwrite,
-          "Cannot create scope :old, because of existing method Person.old."
-        )
+          log_io.rewind
+        end
+
+        it "logs the scope warning" do
+          log_io.readlines.join.should =~
+            /Creating scope :old. Overwriting existing method Person.old/
+        end
+      end
+
+      context "when raising overwrite exceptions" do
+
+        before do
+          Mongoid.scope_overwrite_exception = true
+        end
+
+        it "raises an error" do
+          lambda {
+            Person.class_eval do
+              scope :old, criteria.where(:age.gt => 67)
+            end
+          }.should raise_error(Mongoid::Errors::ScopeOverwrite)
+        end
       end
     end
 
@@ -155,14 +164,14 @@ describe Mongoid::NamedScope do
       context "when the proc delegates to a hash" do
 
         it "adds the selector to the scope" do
-          Player.frags_over(50).selector[:frags].should == { "$gt" => 50 }
+          Player.frags_over(50).selector[:frags].should eq({ "$gt" => 50 })
         end
       end
 
       context "when the proc delegates to a criteria" do
 
         it "adds the selector to the scope" do
-          Player.deaths_under(40).selector[:deaths].should == { "$lt" => 40 }
+          Player.deaths_under(40).selector[:deaths].should eq({ "$lt" => 40 })
         end
       end
     end
@@ -212,7 +221,7 @@ describe Mongoid::NamedScope do
       end
 
       it "returns a criteria with default scoping options" do
-        criteria.options.should == { :sort => [[ :name, :asc ]] }
+        criteria.options.should eq({ :sort => [[ :name, :asc ]] })
       end
     end
 
@@ -223,11 +232,11 @@ describe Mongoid::NamedScope do
       end
 
       it "returns a criteria with no default scoping" do
-        criteria.selector.should == {}
+        criteria.selector.should eq({})
       end
 
       it "returns a criteria with no default options" do
-        criteria.options.should == {}
+        criteria.options.should eq({})
       end
     end
   end
@@ -249,14 +258,14 @@ describe Mongoid::NamedScope do
       end
 
       it "returns the scope stack for the class" do
-        Person.scope_stack.should == [ criteria ]
+        Person.scope_stack.should eq([ criteria ])
       end
     end
 
     context "when no scope is on the stack" do
 
       it "returns an empty array" do
-        Person.scope_stack.should == []
+        Person.scope_stack.should be_empty
       end
     end
   end
@@ -268,11 +277,11 @@ describe Mongoid::NamedScope do
     end
 
     it "returns a criteria with no selector" do
-      criteria.selector.should == {}
+      criteria.selector.should eq({})
     end
 
     it "returns a criteria with no options" do
-      criteria.options.should == {}
+      criteria.options.should eq({})
     end
   end
 
@@ -289,7 +298,7 @@ describe Mongoid::NamedScope do
       end
 
       it "retains the second criteria" do
-        selector[:frags].should == { "$gt" => 10 }
+        selector[:frags].should eq({ "$gt" => 10 })
       end
 
       context "when both scoped have in clauses" do
@@ -321,11 +330,11 @@ describe Mongoid::NamedScope do
       end
 
       it "retains the second criteria" do
-        selector[:frags].should == { "$gt" => 10 }
+        selector[:frags].should eq({ "$gt" => 10 })
       end
 
       it "retains the class method criteria" do
-        selector[:status].should == "Alive"
+        selector[:status].should eq("Alive")
       end
     end
   end

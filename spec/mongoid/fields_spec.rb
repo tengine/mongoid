@@ -6,10 +6,6 @@ describe Mongoid::Fields do
     Mongoid.use_activesupport_time_zone = false
   end
 
-  before do
-    Product.delete_all
-  end
-
   describe "#\{field}_translations" do
 
     let(:product) do
@@ -333,8 +329,9 @@ describe Mongoid::Fields do
         end
 
         it "returns an equal object of a different instance" do
-          person_one.array_testing.object_id.should_not ==
+          person_one.array_testing.object_id.should_not eq(
             person_two.array_testing.object_id
+          )
         end
       end
 
@@ -349,8 +346,9 @@ describe Mongoid::Fields do
         end
 
         it "returns an equal object of a different instance" do
-          person_one.hash_testing.object_id.should_not ==
+          person_one.hash_testing.object_id.should_not eq(
             person_two.hash_testing.object_id
+          )
         end
       end
 
@@ -462,12 +460,12 @@ describe Mongoid::Fields do
         end
 
         it "performs the necessary time conversions" do
-          person.lunch_time.to_s.should == time.getlocal.to_s
+          person.lunch_time.to_s.should eq(time.getlocal.to_s)
         end
       end
     end
 
-    context "with no options" do
+    context "when providing no options" do
 
       before do
         Person.field(:testing)
@@ -478,29 +476,33 @@ describe Mongoid::Fields do
       end
 
       it "adds a reader for the fields defined" do
-        person.testing.should == "Test"
+        person.testing.should eq("Test")
       end
 
       it "adds a writer for the fields defined" do
-        person.testing = "Testy"
-        person.testing.should == "Testy"
+        (person.testing = "Testy").should eq("Testy")
       end
 
       it "adds an existance method" do
-        person.testing?.should be_true
         Person.new.testing?.should be_false
       end
 
-      it "adds field methods in a module to allow overriding and preserve inheritance" do
-        Person.class_eval do
-          attr_reader :testing_override_called
-          def testing=(value)
-            @testing_override_called = true
-            super
+      context "when overwriting an existing field" do
+
+        before do
+          Person.class_eval do
+            attr_reader :testing_override_called
+            def testing=(value)
+              @testing_override_called = true
+              super
+            end
           end
+          person.testing = 'Test'
         end
-        person.testing = 'Test'
-        person.testing_override_called.should be_true
+
+        it "properly overwrites the method" do
+          person.testing_override_called.should be_true
+        end
       end
     end
 
@@ -511,7 +513,7 @@ describe Mongoid::Fields do
       end
 
       it "returns the given value" do
-        bob.reading.should == 10.023
+        bob.reading.should eq(10.023)
       end
     end
 
@@ -537,33 +539,27 @@ describe Mongoid::Fields do
       end
 
       it "uses the alias to write the attribute" do
-        person.expects(:write_attribute).with("aliased", true)
-        person.alias = true
+        (person.alias = true).should be_true
       end
 
       it "uses the alias to read the attribute" do
-        person.expects(:read_attribute).with("aliased")
-        person.alias
+        person.alias.should be_true
       end
 
       it "uses the alias for the query method" do
-        person.expects(:read_attribute).with("aliased")
-        person.alias?
+        person.should be_alias
       end
 
       it "uses the name to write the attribute" do
-        person.expects(:write_attribute).with("aliased", true)
-        person.aliased = true
+        (person.aliased = true).should be_true
       end
 
       it "uses the name to read the attribute" do
-        person.expects(:read_attribute).with("aliased")
-        person.aliased
+        person.aliased.should be_true
       end
 
       it "uses the name for the query method" do
-        person.expects(:read_attribute).with("aliased")
-        person.aliased?
+        person.should be_aliased
       end
 
       it "creates dirty methods for the name" do
@@ -581,13 +577,12 @@ describe Mongoid::Fields do
         end
 
         it "sets name_changed?" do
-          person.aliased_changed?.should be
+          person.aliased_changed?.should be_true
         end
 
         it "sets alias_changed?" do
-          person.alias_changed?.should be
+          person.alias_changed?.should be_true
         end
-
       end
 
       context "when changing the alias" do
@@ -597,13 +592,12 @@ describe Mongoid::Fields do
         end
 
         it "sets name_changed?" do
-          person.aliased_changed?.should be
+          person.aliased_changed?.should be_true
         end
 
         it "sets alias_changed?" do
-          person.alias_changed?.should be
+          person.alias_changed?.should be_true
         end
-
       end
 
       context "when defining a criteria" do
@@ -697,8 +691,11 @@ describe Mongoid::Fields do
         Circle.new
       end
 
-      it "includes the parent fields" do
+      it "includes the first parent field" do
         circle.fields.keys.should include("x")
+      end
+
+      it "includes the second parent field" do
         circle.fields.keys.should include("y")
       end
 
@@ -812,11 +809,11 @@ describe Mongoid::Fields do
     end
 
     it "sets the new type on the field" do
-      new_field.type.should == String
+      new_field.type.should eq(String)
     end
 
     it "keeps the options from the old field" do
-      new_field.options[:label].should == "id"
+      new_field.options[:label].should eq("id")
     end
   end
 

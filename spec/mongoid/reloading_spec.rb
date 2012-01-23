@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Reloading do
 
-  before do
-    [ Account, Person, Game ].each(&:delete_all)
-  end
-
   describe "#reload" do
 
     context "when using bson ids" do
@@ -207,8 +203,8 @@ describe Mongoid::Reloading do
         person.reload
       end
 
-      it "should reload the association" do
-        person.addresses.should eq([])
+      it "reloads the association" do
+        person.addresses.should be_empty
       end
     end
 

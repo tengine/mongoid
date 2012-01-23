@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Serialization do
 
-  before do
-    Person.delete_all
-  end
-
   describe "#serializable_hash" do
 
     let(:person) do
@@ -15,11 +11,15 @@ describe Mongoid::Serialization do
     context "when a model has defined fields" do
 
       let(:attributes) do
-        { 'title' => "President", 'security_code' => '1234' }
+        { "title" => "President", "security_code" => "1234" }
       end
 
       before do
-        person.write_attributes attributes, false
+        person.write_attributes(attributes, false)
+      end
+
+      let(:field_names) do
+        person.fields.keys.map(&:to_s) - ["_type"]
       end
 
       it "serializes assigned attributes" do
@@ -27,31 +27,67 @@ describe Mongoid::Serialization do
       end
 
       it "includes all defined fields except _type" do
-        field_names = person.fields.keys.map(&:to_s) - ['_type']
         person.serializable_hash.keys.should include(*field_names)
       end
 
       it "does not include _type" do
-        person.serializable_hash.keys.should_not include '_type'
+        person.serializable_hash.keys.should_not include "_type"
       end
 
-      it "does not modify the options in the argument" do
-        options = { :only => :name }
-        person.serializable_hash(options)
-        options[:except].should be_nil
+      context "when providing options" do
+
+        let(:options) do
+          { :only => :name }
+        end
+
+        before do
+          person.serializable_hash(options)
+        end
+
+        it "does not modify the options in the argument" do
+          options[:except].should be_nil
+        end
+      end
+
+      context "when include_type_for_serialization is true" do
+
+        before do
+          Mongoid.include_type_for_serialization = true
+        end
+
+        after do
+          Mongoid.include_type_for_serialization = false
+        end
+
+        it "includes _type field" do
+          person.serializable_hash.keys.should include '_type'
+        end
       end
 
       context "when specifying which fields to only include" do
 
         it "only includes the specified fields" do
-          person.serializable_hash(:only => [:title]).should == { 'title' => attributes['title'] }
+          person.serializable_hash(:only => [:title]).should eq(
+            { "title" => attributes["title"] }
+          )
+        end
+      end
+
+      context "when specifying extra inclusions" do
+
+        it "includes the extra fields" do
+          person.serializable_hash(
+            :methods => [ :_type ]
+          ).has_key?("_type").should be_true
         end
       end
 
       context "when specifying which fields to exclude" do
 
         it "excludes the specified fields" do
-          person.serializable_hash(:except => [:title]).should_not include('title' => attributes['title'])
+          person.serializable_hash(:except => [:title]).should_not include(
+            "title" => attributes["title"]
+          )
         end
       end
     end
@@ -67,24 +103,28 @@ describe Mongoid::Serialization do
       end
 
       before do
-        person.write_attribute dynamic_field_name, dynamic_value
+        person.write_attribute(dynamic_field_name, dynamic_value)
       end
 
       it "includes dynamic fields" do
-        person.serializable_hash[dynamic_field_name].should == dynamic_value
+        person.serializable_hash[dynamic_field_name].should eq(dynamic_value)
       end
 
       context "when specifying which dynamic fields to only include" do
 
         it "only includes the specified dynamic fields" do
-          person.serializable_hash(:only => [dynamic_field_name]).should == { dynamic_field_name => dynamic_value }
+          person.serializable_hash(:only => [dynamic_field_name]).should eq(
+            { dynamic_field_name => dynamic_value }
+          )
         end
       end
 
       context "when specified which dynamic fields to exclude" do
 
         it "excludes the specified fields" do
-          person.serializable_hash(:except => [dynamic_field_name]).should_not include(dynamic_field_name => dynamic_value)
+          person.serializable_hash(:except => [dynamic_field_name]).should_not include(
+            dynamic_field_name => dynamic_value
+          )
         end
       end
     end
@@ -92,7 +132,9 @@ describe Mongoid::Serialization do
     context "when including methods" do
 
       it "includes the method result" do
-        person.serializable_hash(:methods => [:foo]).should include('foo' => person.foo)
+        person.serializable_hash(:methods => [:foo]).should include(
+          "foo" => person.foo
+        )
       end
     end
 
@@ -199,7 +241,9 @@ describe Mongoid::Serialization do
               end
 
               it "includes the first relation" do
-                relation_hash[0]["locations"].any? { |location| location['name'] == "Home" }.should be_true
+                relation_hash[0]["locations"].any? do |location|
+                  location["name"] == "Home"
+                end.should be_true
               end
 
               context "after retrieved from database" do
@@ -223,8 +267,12 @@ describe Mongoid::Serialization do
                 end
 
                 it "includes the specific ralations" do
-                  relation_hash[0]["locations"].map { |location| location['name'] }.should include "Home"
-                  relation_hash[1]["locations"].map { |location| location['name'] }.should include "Hotel"
+                  relation_hash[0]["locations"].map do |location|
+                    location["name"]
+                  end.should include "Home"
+                  relation_hash[1]["locations"].map do |location|
+                    location["name"]
+                  end.should include "Hotel"
                 end
               end
             end
@@ -329,11 +377,11 @@ describe Mongoid::Serialization do
             end
 
             it "includes the first document related fields" do
-              relation_hash[0]["title"].should == "First"
+              relation_hash[0]["title"].should eq("First")
             end
 
             it "includes the second document related fields" do
-              relation_hash[1]["title"].should == "Second"
+              relation_hash[1]["title"].should eq("Second")
             end
           end
 
@@ -348,11 +396,11 @@ describe Mongoid::Serialization do
             end
 
             it "includes the first document related fields" do
-              relation_hash[0]["title"].should == "First"
+              relation_hash[0]["title"].should eq("First")
             end
 
             it "includes the second document related fields" do
-              relation_hash[1]["title"].should == "Second"
+              relation_hash[1]["title"].should eq("Second")
             end
           end
 
@@ -367,11 +415,11 @@ describe Mongoid::Serialization do
             end
 
             it "includes the first document related fields" do
-              relation_hash[0]["title"].should == "First"
+              relation_hash[0]["title"].should eq("First")
             end
 
             it "includes the second document related fields" do
-              relation_hash[1]["title"].should == "Second"
+              relation_hash[1]["title"].should eq("Second")
             end
 
             it "does not include the first document exceptions" do
@@ -409,11 +457,11 @@ describe Mongoid::Serialization do
             end
 
             it "includes the first document related fields" do
-              relation_hash[0]["name"].should == "First"
+              relation_hash[0]["name"].should eq("First")
             end
 
             it "includes the second document related fields" do
-              relation_hash[1]["name"].should == "Second"
+              relation_hash[1]["name"].should eq("Second")
             end
           end
 
@@ -428,11 +476,11 @@ describe Mongoid::Serialization do
             end
 
             it "includes the first document related fields" do
-              relation_hash[0]["name"].should == "First"
+              relation_hash[0]["name"].should eq("First")
             end
 
             it "includes the second document related fields" do
-              relation_hash[1]["name"].should == "Second"
+              relation_hash[1]["name"].should eq("Second")
             end
           end
 
@@ -454,11 +502,11 @@ describe Mongoid::Serialization do
             end
 
             it "includes the first document related fields" do
-              relation_hash[0]["name"].should == "First"
+              relation_hash[0]["name"].should eq("First")
             end
 
             it "includes the second document related fields" do
-              relation_hash[1]["name"].should == "Second"
+              relation_hash[1]["name"].should eq("Second")
             end
 
             it "does not include the first document exceptions" do
@@ -487,7 +535,7 @@ describe Mongoid::Serialization do
       end
 
       it "serializes the value to the provided type" do
-        value.should == true
+        value.should be_true
       end
     end
 
@@ -498,7 +546,7 @@ describe Mongoid::Serialization do
       end
 
       it "returns the value untouched" do
-        value.should == 47
+        value.should eq(47)
       end
     end
   end

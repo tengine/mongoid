@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Persistence::Atomic::Sets do
 
-  before do
-    Person.delete_all
-  end
-
   describe "#set" do
 
     let(:person) do
@@ -27,11 +23,11 @@ describe Mongoid::Persistence::Atomic::Sets do
       end
 
       it "sets the provided value" do
-        set.should == 5
+        set.should eq(5)
       end
 
       it "persists the change" do
-        reloaded.addresses.first.number.should == 5
+        reloaded.addresses.first.number.should eq(5)
       end
     end
 
@@ -42,15 +38,15 @@ describe Mongoid::Persistence::Atomic::Sets do
       end
 
       it "sets the provided value" do
-        person.age.should == 2
+        person.age.should eq(2)
       end
 
       it "returns the new value" do
-        set.should == 2
+        set.should eq(2)
       end
 
       it "persists the changes" do
-        reloaded.age.should == 2
+        reloaded.age.should eq(2)
       end
 
       it "resets the dirty attributes" do
@@ -65,15 +61,15 @@ describe Mongoid::Persistence::Atomic::Sets do
       end
 
       it "sets the provided value" do
-        person.pets.should == false
+        person.pets.should be_false
       end
 
       it "returns the new value" do
-        set.should == false
+        set.should be_false
       end
 
       it "persists the changes" do
-        reloaded.pets.should == false
+        reloaded.pets.should be_false
       end
 
       it "resets the dirty attributes" do
@@ -89,15 +85,15 @@ describe Mongoid::Persistence::Atomic::Sets do
       end
 
       it "sets the value to the provided number" do
-        person.score.should == 2
+        person.score.should eq(2)
       end
 
       it "returns the new value" do
-        set.should == 2
+        set.should eq(2)
       end
 
       it "persists the changes" do
-        reloaded.score.should == 2
+        reloaded.score.should eq(2)
       end
 
       it "resets the dirty attributes" do
@@ -112,15 +108,15 @@ describe Mongoid::Persistence::Atomic::Sets do
       end
 
       it "sets the value to the provided number" do
-        person.high_score.should == 5
+        person.high_score.should eq(5)
       end
 
       it "returns the new value" do
-        set.should == 5
+        set.should eq(5)
       end
 
       it "persists the changes" do
-        reloaded.high_score.should == 5
+        reloaded.high_score.should eq(5)
       end
 
       it "resets the dirty attributes" do

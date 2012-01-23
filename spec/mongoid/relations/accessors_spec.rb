@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Relations::Accessors do
 
-  before do
-    [ Book, Movie, Rating, Person, Preference, Game ].each(&:delete_all)
-  end
-
   describe "\#{getter}" do
 
     context "when the relation is not polymorphic" do
@@ -31,7 +27,7 @@ describe Mongoid::Relations::Accessors do
           end
 
           it "reloads the correct documents" do
-            preferences.should == [ preference ]
+            preferences.should eq([ preference ])
           end
 
           it "reloads a new instance" do
@@ -46,7 +42,7 @@ describe Mongoid::Relations::Accessors do
           end
 
           it "reloads the correct documents" do
-            preferences.should == [ preference ]
+            preferences.should eq([ preference ])
           end
 
           it "reloads a new instance" do
@@ -61,7 +57,7 @@ describe Mongoid::Relations::Accessors do
           end
 
           it "reloads the correct documents" do
-            preferences.should == [ preference ]
+            preferences.should eq([ preference ])
           end
         end
       end
@@ -83,7 +79,7 @@ describe Mongoid::Relations::Accessors do
           end
 
           it "reloads the correct documents" do
-            posts.should == [ post ]
+            posts.should eq([ post ])
           end
 
           it "reloads a new instance" do
@@ -98,7 +94,7 @@ describe Mongoid::Relations::Accessors do
           end
 
           it "reloads the correct documents" do
-            posts.should == [ post ]
+            posts.should eq([ post ])
           end
 
           it "reloads a new instance" do
@@ -113,7 +109,7 @@ describe Mongoid::Relations::Accessors do
           end
 
           it "reloads the correct documents" do
-            posts.should == [ post ]
+            posts.should eq([ post ])
           end
         end
       end
@@ -135,7 +131,7 @@ describe Mongoid::Relations::Accessors do
           end
 
           it "reloads the correct documents" do
-            reloaded_game.should == game
+            reloaded_game.should eq(game)
           end
 
           it "reloads a new instance" do
@@ -150,7 +146,7 @@ describe Mongoid::Relations::Accessors do
           end
 
           it "reloads the correct documents" do
-            reloaded_game.should == game
+            reloaded_game.should eq(game)
           end
 
           it "reloads a new instance" do
@@ -165,7 +161,7 @@ describe Mongoid::Relations::Accessors do
           end
 
           it "reloads the correct documents" do
-            reloaded_game.should == game
+            reloaded_game.should eq(game)
           end
         end
       end
@@ -200,7 +196,7 @@ describe Mongoid::Relations::Accessors do
         end
 
         it "returns the correct document" do
-          rating.ratable.should == movie
+          rating.ratable.should eq(movie)
         end
       end
 
@@ -211,7 +207,7 @@ describe Mongoid::Relations::Accessors do
         end
 
         it "returns the correct documents" do
-          ratings.should == [ movie_rating ]
+          ratings.should eq([ movie_rating ])
         end
       end
 
@@ -222,7 +218,7 @@ describe Mongoid::Relations::Accessors do
         end
 
         it "returns the correct document" do
-          rating.should == book_rating
+          rating.should eq(book_rating)
         end
       end
     end

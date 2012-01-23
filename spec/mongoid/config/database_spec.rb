@@ -22,6 +22,12 @@ describe Mongoid::Config::Database do
         connection.primary
       end
 
+      after do
+        Mongoid.configure do |config|
+          config.master = Mongo::Connection.new(HOST, PORT).db(database_id)
+        end
+      end
+
       context "when provided a uri" do
 
         context "when the uri is on mongohq", :config => :mongohq do
@@ -42,11 +48,11 @@ describe Mongoid::Config::Database do
           end
 
           it "connects to the proper host" do
-            node[0].should == "flame.mongohq.com"
+            node[0].should eq("flame.mongohq.com")
           end
 
           it "connects to the proper port" do
-            node[1].should == 27040
+            node[1].should eq(27040)
           end
         end
 
@@ -57,19 +63,19 @@ describe Mongoid::Config::Database do
           end
 
           it "sets the node host to the uri host" do
-            node[0].should == "localhost"
+            node[0].should eq("localhost")
           end
 
           it "sets the node port to the uri port" do
-            node[1].should == 27017
+            node[1].should eq(27017)
           end
 
           it "sets the database name to the uri database name" do
-            master.name.should == database_id
+            master.name.should eq(database_id)
           end
 
           it "defaults the pool size to 1" do
-            connection.pool_size.should == 1
+            connection.pool_size.should eq(1)
           end
         end
 
@@ -84,19 +90,19 @@ describe Mongoid::Config::Database do
           end
 
           it "sets the node host to the uri host" do
-            node[0].should == "localhost"
+            node[0].should eq("localhost")
           end
 
           it "sets the node port to the uri port" do
-            node[1].should == 27017
+            node[1].should eq(27017)
           end
 
           it "sets the database name to the uri database name" do
-            master.name.should == database_id
+            master.name.should eq(database_id)
           end
 
           it "sets the pool size" do
-            connection.pool_size.should == 2
+            connection.pool_size.should eq(2)
           end
 
           it "sets the logger to the mongoid logger" do
@@ -114,19 +120,19 @@ describe Mongoid::Config::Database do
           end
 
           it "sets the node host to the uri host" do
-            node[0].should == "localhost"
+            node[0].should eq("localhost")
           end
 
           it "sets the node port to the uri port" do
-            node[1].should == 27017
+            node[1].should eq(27017)
           end
 
           it "sets the database name to the uri database name" do
-            master.name.should == database_id
+            master.name.should eq(database_id)
           end
 
           it "sets the pool size to 1" do
-            connection.pool_size.should == 1
+            connection.pool_size.should eq(1)
           end
         end
 
@@ -137,15 +143,15 @@ describe Mongoid::Config::Database do
           end
 
           it "sets the node host to localhost" do
-            node[0].should == "localhost"
+            node[0].should eq("localhost")
           end
 
           it "sets the node port to the uri port" do
-            node[1].should == 27017
+            node[1].should eq(27017)
           end
 
           it "sets the database name to the uri database name" do
-            master.name.should == database_id
+            master.name.should eq(database_id)
           end
         end
 
@@ -156,11 +162,11 @@ describe Mongoid::Config::Database do
           end
 
           it "sets the node host to localhost" do
-            node[0].should == "localhost"
+            node[0].should eq("localhost")
           end
 
           it "sets the node port to the uri port" do
-            node[1].should == 27017
+            node[1].should eq(27017)
           end
         end
 
@@ -171,11 +177,11 @@ describe Mongoid::Config::Database do
           end
 
           it "sets the node host to localhost" do
-            node[0].should == "localhost"
+            node[0].should eq("localhost")
           end
 
           it "sets the node port to the uri port" do
-            node[1].should == 27017
+            node[1].should eq(27017)
           end
         end
 
@@ -190,11 +196,11 @@ describe Mongoid::Config::Database do
           end
 
           it "sets the node host to localhost" do
-            node[0].should == "localhost"
+            node[0].should eq("localhost")
           end
 
           it "sets the node port to the uri port" do
-            node[1].should == 27017
+            node[1].should eq(27017)
           end
         end
       end

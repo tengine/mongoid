@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Criterion::Inspection do
 
-  before do
-    Person.delete_all
-  end
-
   describe "#inspect" do
 
     context "when documents match in the database" do
@@ -27,7 +23,7 @@ describe Mongoid::Criterion::Inspection do
       end
 
       it "returns the selector, options, and empty array" do
-        criteria.inspect.should == inspection
+        criteria.inspect.should eq(inspection)
       end
     end
 
@@ -46,7 +42,7 @@ describe Mongoid::Criterion::Inspection do
       end
 
       it "returns the selector, options, and empty array" do
-        criteria.inspect.should == inspection
+        criteria.inspect.should eq(inspection)
       end
     end
   end

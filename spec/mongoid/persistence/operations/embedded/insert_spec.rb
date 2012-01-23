@@ -19,7 +19,6 @@ describe Mongoid::Persistence::Operations::Embedded::Insert do
   end
 
   before do
-    Person.delete_all
     document.stubs(:collection).returns(collection)
   end
 
@@ -95,7 +94,7 @@ describe Mongoid::Persistence::Operations::Embedded::Insert do
 
         it "notifies its changes to parent and inserts the parent" do
           root_insert_expectation.call
-          insert.persist.should == email
+          insert.persist.should eq(email)
         end
       end
 
@@ -111,7 +110,7 @@ describe Mongoid::Persistence::Operations::Embedded::Insert do
 
         it "performs an in place $set on the embedded document" do
           root_set_expectation.call
-          insert.persist.should == email
+          insert.persist.should eq(email)
         end
       end
     end
@@ -130,7 +129,7 @@ describe Mongoid::Persistence::Operations::Embedded::Insert do
 
         it "notifies its changes to the parent and inserts the parent" do
           root_insert_expectation.call
-          insert.persist.should == address
+          insert.persist.should eq(address)
         end
 
         it "sets new_record to false" do
@@ -151,7 +150,7 @@ describe Mongoid::Persistence::Operations::Embedded::Insert do
 
         it "performs a $push on the embedded array" do
           root_push_expectation.call
-          insert.persist.should == address
+          insert.persist.should eq(address)
         end
 
         context "when we add the parent to the child" do
@@ -166,7 +165,7 @@ describe Mongoid::Persistence::Operations::Embedded::Insert do
               { "$push" => { "addresses" => other_address.raw_attributes } },
               :safe => false
             ).returns("Object")
-            described_class.new(other_address).persist.should == other_address
+            described_class.new(other_address).persist.should eq(other_address)
           end
         end
       end

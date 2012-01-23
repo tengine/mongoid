@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Timestamps do
 
-  before do
-    Person.delete_all
-  end
-
   describe ".included" do
 
     let(:person) do
@@ -66,10 +62,10 @@ describe Mongoid::Timestamps do
 
     before do
       person.new_record = false
+      person.updated_at = DateTime.parse("2001-06-12")
     end
 
     it "does not set updated at" do
-      person.updated_at = DateTime.parse("2001-06-12")
       person.expects(:updated_at=).never
       person.save
     end
@@ -82,7 +78,6 @@ describe Mongoid::Timestamps do
     end
 
     it "runs the update callbacks" do
-      person.updated_at.should_not be_nil
       person.updated_at.should be_within(10).of(Time.now.utc)
     end
   end

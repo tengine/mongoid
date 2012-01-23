@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Validations do
 
-  before do
-    [ Pizza, Topping ].each(&:delete_all)
-  end
-
   let(:account) do
     Account.new(:name => "Testing a really long name.")
   end
@@ -27,7 +23,7 @@ describe Mongoid::Validations do
       end
 
       it "returns the value" do
-        value.should == "Mr"
+        value.should eq("Mr")
       end
     end
 
@@ -46,7 +42,7 @@ describe Mongoid::Validations do
       end
 
       it "returns the value" do
-        value.should == [ address ]
+        value.should eq([ address ])
       end
     end
   end
@@ -129,7 +125,7 @@ describe Mongoid::Validations do
 
             it "adds the errors to the document" do
               movie.valid?
-              movie.errors[:ratings].should == [ "is invalid" ]
+              movie.errors[:ratings].should eq([ "is invalid" ])
             end
           end
 
@@ -167,7 +163,7 @@ describe Mongoid::Validations do
 
             it "adds the errors to the document" do
               person.valid?
-              person.errors[:services].should == [ "is invalid" ]
+              person.errors[:services].should eq([ "is invalid" ])
             end
           end
 
@@ -271,7 +267,6 @@ describe Mongoid::Validations do
         klass.validators.first.should be_a(
           Mongoid::Validations::PresenceValidator
         )
-        klass.validators
       end
     end
 
@@ -284,6 +279,41 @@ describe Mongoid::Validations do
       it "adds the validator" do
         klass.validators.first.should be_a(
           Mongoid::Validations::PresenceValidator
+        )
+      end
+    end
+  end
+  
+  describe ".validates_format_of" do
+
+    let(:klass) do
+      Class.new do
+        include Mongoid::Document
+      end
+    end
+
+    context "when adding via the traditional macro" do
+
+      before do
+        klass.validates_format_of(:website, :with => URI.regexp)
+      end
+
+      it "adds the validator" do
+        klass.validators.first.should be_a(
+          Mongoid::Validations::FormatValidator
+        )
+      end
+    end
+
+    context "when adding via the new syntax" do
+
+      before do
+        klass.validates(:website, :format => { :with => URI.regexp })
+      end
+
+      it "adds the validator" do
+        klass.validators.first.should be_a(
+          Mongoid::Validations::FormatValidator
         )
       end
     end

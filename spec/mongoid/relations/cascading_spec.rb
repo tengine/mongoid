@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Relations::Cascading do
 
-  before do
-    [ Person, Post, Book, Movie, Rating ].each(&:delete_all)
-  end
-
   describe ".cascade" do
 
     let(:klass) do
@@ -31,7 +27,7 @@ describe Mongoid::Relations::Cascading do
       end
 
       it "returns self" do
-        cascaded.should == klass
+        cascaded.should eq(klass)
       end
     end
 
@@ -53,7 +49,7 @@ describe Mongoid::Relations::Cascading do
       end
 
       it "returns self" do
-        cascaded.should == klass
+        cascaded.should eq(klass)
       end
     end
   end

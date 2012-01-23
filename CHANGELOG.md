@@ -7,7 +7,15 @@ For instructions on upgrading to newer versions, visit
 
 ### New Features
 
+* \#1616 `Model.find_by` added which takes a hash of arugments to search
+  for in the database. If no single document is returned a DocumentNotFound
+  error is raised. (Piotr Jakubowski)
+
 * \#1348 Eager loading is now supported on many-to-many relations.
+
+* \#1053 Raise a `Mongoid::Errors::UnknownAttribute` instead of no method
+  when attempting to set a field that is not defined and allow dynamic
+  fields is false. (Cyril Mougel)
 
 ### Major Changes
 
@@ -52,7 +60,38 @@ For instructions on upgrading to newer versions, visit
 
 * \#1135 DateTimes now properly get time zones on derserialization.
 
-## 2.4.2 \[ In Development \] \[ Branch: 2.4.0-stable \]
+## 2.4.3 \[ In Development \] \[ Branch: 2.4.0-stable \]
+
+* \#1629 $all and $in criteria on embedded many relations now properly
+  handles regex searches and elements of varying length. (Douwe Maan)
+
+### Resolved Issues
+
+## 2.4.2
+
+### Resolved Issues
+
+* \#1628 _type field can once again be included in serialization to json
+  or xml as a global option with `include_type_for_serialization`.
+  (Roman Shterenzon)
+
+* \#1627 Validating format now works properly with localized fields.
+  (Douwe Maan)
+
+* \#1617 Relation proxy methods now show up in Mongoid's list of
+  prohibited fields.
+
+* \#1615 Allow a single configuration of host and port for all spec runs,
+  overridden by setting MONGOID_SPEC_HOST and MONGOID_SPEC_PORT env vars.
+
+* \#1610 When versioning paranoid documents and max version is set, hard
+  delete old versions from the embedded relation.
+
+* \#1609 Allow connection retry during cursor iteration as well as all other
+  operations.
+
+* \#1608 Guard against no method errors when passing ids in nested attributes
+  and the documents do not exist.
 
 * \#1605 Remove deprecation warning on rescue responses, Rails 3.2
 

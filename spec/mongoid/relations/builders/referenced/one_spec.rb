@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Relations::Builders::Referenced::One do
 
-  before do
-    [ Person, Game ].each(&:delete_all)
-  end
-
   let(:base) do
     stub(:new_record? => false)
   end
@@ -53,7 +49,7 @@ describe Mongoid::Relations::Builders::Referenced::One do
       end
 
       it "sets the document" do
-        documents.should == post
+        documents.should eq(post)
       end
     end
 
@@ -68,7 +64,7 @@ describe Mongoid::Relations::Builders::Referenced::One do
       end
 
       it "returns the object" do
-        document.should == object
+        document.should eq(object)
       end
     end
   end

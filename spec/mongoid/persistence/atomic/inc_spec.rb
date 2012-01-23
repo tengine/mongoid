@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Persistence::Atomic::Inc do
 
-  before do
-    Person.delete_all
-  end
-
   describe "#inc" do
 
     let(:person) do
@@ -27,11 +23,11 @@ describe Mongoid::Persistence::Atomic::Inc do
       end
 
       it "increments the provided value" do
-        inced.should == 10
+        inced.should eq(10)
       end
 
       it "persists the change" do
-        reloaded.addresses.first.number.should == 10
+        reloaded.addresses.first.number.should eq(10)
       end
     end
 
@@ -42,15 +38,15 @@ describe Mongoid::Persistence::Atomic::Inc do
       end
 
       it "increments by the provided value" do
-        person.age.should == 102
+        person.age.should eq(102)
       end
 
       it "returns the new value" do
-        inced.should == 102
+        inced.should eq(102)
       end
 
       it "persists the changes" do
-        reloaded.age.should == 102
+        reloaded.age.should eq(102)
       end
 
       it "resets the dirty attributes" do
@@ -65,15 +61,15 @@ describe Mongoid::Persistence::Atomic::Inc do
       end
 
       it "sets the value to the provided number" do
-        person.score.should == 2
+        person.score.should eq(2)
       end
 
       it "returns the new value" do
-        inced.should == 2
+        inced.should eq(2)
       end
 
       it "persists the changes" do
-        reloaded.score.should == 2
+        reloaded.score.should eq(2)
       end
 
       it "resets the dirty attributes" do
@@ -88,15 +84,15 @@ describe Mongoid::Persistence::Atomic::Inc do
       end
 
       it "sets the value to the provided number" do
-        person.high_score.should == 5
+        person.high_score.should eq(5)
       end
 
       it "returns the new value" do
-        inced.should == 5
+        inced.should eq(5)
       end
 
       it "persists the changes" do
-        reloaded.high_score.should == 5
+        reloaded.high_score.should eq(5)
       end
 
       it "resets the dirty attributes" do

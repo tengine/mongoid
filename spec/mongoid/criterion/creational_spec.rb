@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Criterion::Creational do
 
-  before do
-    Person.delete_all
-  end
-
   describe "#create" do
 
     context "when provided a valid selector" do
@@ -19,7 +15,7 @@ describe Mongoid::Criterion::Creational do
       end
 
       it "inserts a new document into the database" do
-        Person.find(person.id).should == person
+        Person.find(person.id).should eq(person)
       end
 
       it "returns the document" do
@@ -27,7 +23,7 @@ describe Mongoid::Criterion::Creational do
       end
 
       it "sets the top level attributes" do
-        person.title.should == "Sir"
+        person.title.should eq("Sir")
       end
     end
 

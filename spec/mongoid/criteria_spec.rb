@@ -2,20 +2,16 @@ require "spec_helper"
 
 describe Mongoid::Criteria do
 
-  before do
-    Person.delete_all
-  end
-
   context "===" do
 
     context "when the other object is a Criteria" do
 
       let(:other) do
-        Mongoid::Criteria.allocate
+        described_class.allocate
       end
 
       it "returns true" do
-        Mongoid::Criteria.should === other
+        (described_class === other).should be_true
       end
     end
 
@@ -26,7 +22,7 @@ describe Mongoid::Criteria do
       end
 
       it "returns false" do
-        Mongoid::Criteria.should_not === other
+        (described_class === other).should be_false
       end
     end
   end
@@ -58,15 +54,15 @@ describe Mongoid::Criteria do
     end
 
     it "copies the selector" do
-      copy.selector.should == criteria.selector
+      copy.selector.should eq(criteria.selector)
     end
 
     it "copies the options" do
-      copy.options.should == criteria.options
+      copy.options.should eq(criteria.options)
     end
 
     it "copies the embedded flag" do
-      copy.embedded.should == criteria.embedded
+      copy.embedded.should eq(criteria.embedded)
     end
 
     it "references the class" do
@@ -100,12 +96,12 @@ describe Mongoid::Criteria do
         )
       end
 
-      it 'should find object with String args' do
-        Person.find(person.id.to_s).should == person
+      it 'finds object with String args' do
+        Person.find(person.id.to_s).should eq(person)
       end
 
-      it 'should find object with BSON::ObjectId  args' do
-        Person.find(person.id).should == person
+      it 'finds object with BSON::ObjectId  args' do
+        Person.find(person.id).should eq(person)
       end
     end
 
@@ -138,11 +134,11 @@ describe Mongoid::Criteria do
         )
       end
 
-      it 'should find the object with a matching String arg' do
-        Person.find(person.id.to_s).should == person
+      it 'finds the object with a matching String arg' do
+        Person.find(person.id.to_s).should eq(person)
       end
 
-      it 'should find the object with a matching BSON::ObjectId argument' do
+      it 'finds the object with a matching BSON::ObjectId argument' do
         Person.find(BSON::ObjectId(person.id)).should eq(person)
       end
     end
@@ -151,7 +147,7 @@ describe Mongoid::Criteria do
   describe "#fuse" do
 
     let(:criteria) do
-      Mongoid::Criteria.new(Person)
+      described_class.new(Person)
     end
 
     context "when providing a selector" do
@@ -161,7 +157,7 @@ describe Mongoid::Criteria do
       end
 
       it "adds the selector" do
-        result.selector[:title].should == 'Test'
+        result.selector[:title].should eq('Test')
       end
     end
 
@@ -172,11 +168,11 @@ describe Mongoid::Criteria do
       end
 
       it "adds the selector" do
-        result.selector[:title].should == 'Test'
+        result.selector[:title].should eq('Test')
       end
 
       it "adds the options" do
-        result.options.should == { :skip => 10 }
+        result.options.should eq({ :skip => 10 })
       end
     end
   end
@@ -184,30 +180,30 @@ describe Mongoid::Criteria do
   describe "#initialize" do
 
     let(:criteria) do
-      Mongoid::Criteria.new(Person)
+      described_class.new(Person)
     end
 
     it "sets the selector to an empty hash" do
-      criteria.selector.should == {}
+      criteria.selector.should eq({})
     end
 
     it "sets the options to an empty hash" do
-      criteria.options.should == {}
+      criteria.options.should eq({})
     end
 
     it "sets the documents to an empty array" do
-      criteria.documents.should == []
+      criteria.documents.should be_empty
     end
 
     it "sets the klass to the given class" do
-      criteria.klass.should == Person
+      criteria.klass.should eq(Person)
     end
   end
 
   describe "#merge" do
 
     let(:criteria) do
-      Mongoid::Criteria.new(Person)
+      described_class.new(Person)
     end
 
     before do
@@ -240,18 +236,18 @@ describe Mongoid::Criteria do
         end
 
         it "merges the selector" do
-          merged.selector.should == selector
+          merged.selector.should eq(selector)
         end
 
         it "merges the options" do
-          merged.options.should == options
+          merged.options.should eq(options)
         end
       end
 
       context "when the other has no selector or options" do
 
         let(:other) do
-          Mongoid::Criteria.new(Person)
+          described_class.new(Person)
         end
 
         let(:selector) do
@@ -263,7 +259,7 @@ describe Mongoid::Criteria do
         end
 
         let(:new_criteria) do
-          Mongoid::Criteria.new(Person)
+          described_class.new(Person)
         end
 
         let(:merged) do
@@ -276,18 +272,18 @@ describe Mongoid::Criteria do
         end
 
         it "merges the selector" do
-          merged.selector.should == selector
+          merged.selector.should eq(selector)
         end
 
         it "merges the options" do
-          merged.options.should == options
+          merged.options.should eq(options)
         end
       end
 
       context "when the other has a document collection" do
 
         let(:other) do
-          Mongoid::Criteria.new(Person)
+          described_class.new(Person)
         end
 
         let(:documents) do
@@ -303,7 +299,7 @@ describe Mongoid::Criteria do
         end
 
         it "merges the documents collection in" do
-          merged.documents.should == documents
+          merged.documents.should eq(documents)
         end
       end
     end
@@ -333,11 +329,11 @@ describe Mongoid::Criteria do
         end
 
         it "merges the selector" do
-          merged.selector.should == selector
+          merged.selector.should eq(selector)
         end
 
         it "merges the options" do
-          merged.options.should == options
+          merged.options.should eq(options)
         end
       end
 
@@ -364,11 +360,11 @@ describe Mongoid::Criteria do
         end
 
         it "merges the selector" do
-          merged.selector.should == selector
+          merged.selector.should eq(selector)
         end
 
         it "merges the options" do
-          merged.options.should == options
+          merged.options.should eq(options)
         end
       end
     end
@@ -377,7 +373,7 @@ describe Mongoid::Criteria do
   describe "#method_missing" do
 
     let(:criteria) do
-      Mongoid::Criteria.new(Person)
+      described_class.new(Person)
     end
 
     let(:new_criteria) do
@@ -389,7 +385,7 @@ describe Mongoid::Criteria do
     end
 
     it "merges the criteria with the next one" do
-      chained.selector.should == { :title => "Sir", :terms => true }
+      chained.selector.should eq({ :title => "Sir", :terms => true })
     end
 
     context "chaining more than one scope" do
@@ -403,8 +399,9 @@ describe Mongoid::Criteria do
       end
 
       it "returns the final merged criteria" do
-        criteria.selector.should ==
+        criteria.selector.should eq(
           { :title => "Sir", :terms => true }
+        )
       end
 
       it "always returns a new criteria" do
@@ -444,7 +441,7 @@ describe Mongoid::Criteria do
         end
 
         it "collects the criteria and calls []" do
-          criteria[0].should == document
+          criteria[0].should eq(document)
         end
       end
 
@@ -465,43 +462,76 @@ describe Mongoid::Criteria do
   describe "#respond_to?" do
 
     let(:criteria) do
-      Mongoid::Criteria.new(Person)
+      described_class.new(Person)
     end
 
     before do
       Person.stubs(:ages => [])
     end
 
-    it "is true when asking about a model's class method" do
-      criteria.respond_to?(:ages).should be_true
+    context "when asking about a model public class method" do
+
+      it "returns true" do
+        criteria.respond_to?(:ages).should be_true
+      end
     end
 
-    it "is false when asking about a model's private class method even when including private methods" do
-      criteria.respond_to?(:alias_method, true).should be_false
+    context "when asking about a model private class method" do
+
+      context "when including private methods" do
+
+        it "returns true" do
+          criteria.respond_to?(:alias_method, true).should be_false
+        end
+      end
     end
 
-    it "is true when asking about a criteria's entries' instance method" do
-      criteria.respond_to?(:join).should be_true
+    context "when asking about a model class public instance method" do
+
+      it "returns true" do
+        criteria.respond_to?(:join).should be_true
+      end
     end
 
-    it "is false when asking about a criteria's entries' private instance methods without including private methods" do
-      criteria.respond_to?(:fork).should be_false
+    context "when asking about a model private instance method" do
+
+      context "when not including private methods" do
+
+        it "returns false" do
+          criteria.respond_to?(:fork).should be_false
+        end
+      end
+
+      context "when including private methods" do
+
+        it "returns true" do
+          criteria.respond_to?(:fork, true).should be_true
+        end
+      end
     end
 
-    it "is false when asking about a criteria's entries' private instance methods when including private methods" do
-      criteria.respond_to?(:fork, true).should be_true
+    context "when asking about a criteria instance method" do
+
+      it "returns true" do
+        criteria.respond_to?(:context).should be_true
+      end
     end
 
-    it "is true when asking about a criteria instance method" do
-      criteria.respond_to?(:context).should be_true
-    end
+    context "when asking about a private criteria instance method" do
 
-    it "is false when asking about a private criteria instance method without including private methods" do
-      criteria.respond_to?(:puts).should be_false
-    end
+      context "when not including private methods" do
 
-    it "is true when asking about a private criteria instance method when including private methods" do
-      criteria.respond_to?(:puts, true).should be_true
+        it "returns false" do
+          criteria.respond_to?(:puts).should be_false
+        end
+      end
+
+      context "when including private methods" do
+
+        it "returns true" do
+          criteria.respond_to?(:puts, true).should be_true
+        end
+      end
     end
   end
 
@@ -538,21 +568,21 @@ describe Mongoid::Criteria do
     end
 
     it "iterates over the cursor only once" do
-      criteria.size.should == 5
+      criteria.size.should eq(5)
       Person.create!(:title => "Sir")
-      criteria.size.should == 5
+      criteria.size.should eq(5)
     end
   end
 
   context "when chaining criteria after an initial execute" do
 
     let(:criteria) do
-      Mongoid::Criteria.new(Person)
+      described_class.new(Person)
     end
 
-    it 'should not carry scope to cloned criteria' do
+    it 'nots carry scope to cloned criteria' do
       criteria.first
-      criteria.limit(1).context.options[:limit].should == 1
+      criteria.limit(1).context.options[:limit].should eq(1)
     end
   end
 end

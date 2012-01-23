@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Observer do
 
-  before do
-    [ Actor, Actress ].each(&:delete_all)
-  end
-
   let(:recorder) do
     CallbackRecorder.instance
   end
@@ -24,17 +20,12 @@ describe Mongoid::Observer do
       ActorObserver.instance
     end
 
-    let(:actor) do
-      Actor.create!(:name => "Johnny Depp")
-    end
-
-    let(:actress) do
+    let!(:actress) do
       Actress.create!(:name => "Tina Fey")
     end
 
     it "observes descendent class" do
-      actor and observer.last_after_create_record.try(:name).should == actor.name
-      actress and observer.last_after_create_record.try(:name).should == actress.name
+      observer.last_after_create_record.try(:name).should eq(actress.name)
     end
   end
 
@@ -50,7 +41,7 @@ describe Mongoid::Observer do
 
     it "does not fire the observer" do
       Actor.observers.disable(:all) do
-        actor and observer.last_after_create_record.should_not == actor
+        actor and observer.last_after_create_record.should_not eq(actor)
       end
     end
   end
@@ -62,11 +53,11 @@ describe Mongoid::Observer do
     end
 
     it "observes after initialize" do
-      recorder.last_callback.should == :after_initialize
+      recorder.last_callback.should eq(:after_initialize)
     end
 
     it "calls after initialize once" do
-      recorder.call_count[:after_initialize].should == 1
+      recorder.call_count[:after_initialize].should eq(1)
     end
 
     it "contains the model of the callback" do
@@ -88,7 +79,7 @@ describe Mongoid::Observer do
       :around_save ].each do |callback|
 
       it "observes #{callback}" do
-        recorder.call_count[callback].should == 1
+        recorder.call_count[callback].should eq(1)
       end
 
       it "contains the model of the callback" do
@@ -116,7 +107,7 @@ describe Mongoid::Observer do
       end
 
       it "observes #{callback}" do
-        recorder.call_count[callback].should == 1
+        recorder.call_count[callback].should eq(1)
       end
 
       it "contains the model of the callback" do
@@ -139,7 +130,7 @@ describe Mongoid::Observer do
       end
 
       it "observes #{callback}" do
-        recorder.call_count[callback].should == 1
+        recorder.call_count[callback].should eq(1)
       end
 
       it "contains the model of the callback" do
@@ -162,7 +153,7 @@ describe Mongoid::Observer do
       end
 
       it "observes #{callback}" do
-        recorder.call_count[callback].should == 1
+        recorder.call_count[callback].should eq(1)
       end
 
       it "contains the model of the callback" do

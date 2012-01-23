@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Persistence::Atomic::PullAll do
 
-  before do
-    Person.delete_all
-  end
-
   describe "#persist" do
 
     context "when the field exists" do
@@ -23,11 +19,11 @@ describe Mongoid::Persistence::Atomic::PullAll do
       end
 
       it "pulls the value from the array" do
-        person.aliases.should == []
+        person.aliases.should be_empty
       end
 
       it "persists the data" do
-        reloaded.aliases.should == []
+        reloaded.aliases.should be_empty
       end
 
       it "removes the field from the dirty attributes" do
@@ -39,7 +35,7 @@ describe Mongoid::Persistence::Atomic::PullAll do
       end
 
       it "returns the new array value" do
-        pulled.should == []
+        pulled.should be_empty
       end
     end
 

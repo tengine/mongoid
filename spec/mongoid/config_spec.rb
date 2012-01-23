@@ -27,10 +27,9 @@ describe Mongoid::Config do
     described_class.logger = nil
   end
 
-  after(:all) do
+  after do
     Mongoid.configure do |config|
-      name          = "mongoid_test"
-      config.master = Mongo::Connection.new.db(name)
+      config.master = Mongo::Connection.new(HOST, PORT).db(database_id)
       config.logger = nil
     end
   end
@@ -59,31 +58,31 @@ describe Mongoid::Config do
       end
 
       it "sets the master db" do
-        described_class.master.name.should == "mongoid_config_test"
+        described_class.master.name.should eq("mongoid_config_test")
       end
 
       it "sets allow_dynamic_fields" do
-        described_class.allow_dynamic_fields.should == false
+        described_class.allow_dynamic_fields.should be_false
       end
 
       it "sets include_root_in_json" do
-        described_class.include_root_in_json.should == true
+        described_class.include_root_in_json.should be_true
       end
 
       it "sets parameterize keys" do
-        described_class.parameterize_keys.should == false
+        described_class.parameterize_keys.should be_false
       end
 
       it "sets scope_overwrite_exception" do
-        described_class.scope_overwrite_exception.should == false
+        described_class.scope_overwrite_exception.should be_false
       end
 
       it "sets persist_in_safe_mode" do
-        described_class.persist_in_safe_mode.should == false
+        described_class.persist_in_safe_mode.should be_false
       end
 
       it "sets raise_not_found_error" do
-        described_class.raise_not_found_error.should == false
+        described_class.raise_not_found_error.should be_false
       end
 
       it "returns nil, which is interpreted as the local time_zone" do
@@ -121,12 +120,12 @@ describe Mongoid::Config do
       end
 
       it "sets the secondary master database" do
-        databases.name.should == "secondary_config_test"
+        databases.name.should eq("secondary_config_test")
       end
 
       it "sets the secondary slaves" do
         slaves.each do |slave|
-          slave.name.should == "secondary_config_test"
+          slave.name.should eq("secondary_config_test")
         end
       end
     end
@@ -138,7 +137,7 @@ describe Mongoid::Config do
       end
 
       it "sets the master db" do
-        described_class.master.name.should == "mongoid"
+        described_class.master.name.should eq("mongoid")
       end
     end
   end
@@ -159,31 +158,31 @@ describe Mongoid::Config do
     end
 
     it "sets the master db" do
-      described_class.master.name.should == "mongoid_config_test"
+      described_class.master.name.should eq("mongoid_config_test")
     end
 
     it "sets allow_dynamic_fields" do
-      described_class.allow_dynamic_fields.should == false
+      described_class.allow_dynamic_fields.should be_false
     end
 
     it "sets include_root_in_json" do
-      described_class.include_root_in_json.should == true
+      described_class.include_root_in_json.should be_true
     end
 
     it "sets parameterize keys" do
-      described_class.parameterize_keys.should == false
+      described_class.parameterize_keys.should be_false
     end
 
     it "sets scope_overwrite_exception" do
-      described_class.scope_overwrite_exception.should == false
+      described_class.scope_overwrite_exception.should be_false
     end
 
     it "sets persist_in_safe_mode" do
-      described_class.persist_in_safe_mode.should == false
+      described_class.persist_in_safe_mode.should be_false
     end
 
     it "sets raise_not_found_error" do
-      described_class.raise_not_found_error.should == false
+      described_class.raise_not_found_error.should be_false
     end
 
     it "returns nil, which is interpreted as the local time_zone" do
@@ -310,7 +309,7 @@ describe Mongoid::Config do
     context "when a database was set" do
 
       it "returns the database" do
-        described_class.master.name.should == "mongoid_config_test"
+        described_class.master.name.should eq(database_id)
       end
     end
   end
@@ -320,11 +319,11 @@ describe Mongoid::Config do
     context "when provided a mongo database" do
 
       before do
-        described_class.master = Mongo::Connection.new.db("mongoid_test")
+        described_class.master = Mongo::Connection.new(HOST, PORT).db("mongoid_test")
       end
 
       it "sets the master" do
-        described_class.master.name.should == "mongoid_test"
+        described_class.master.name.should eq("mongoid_test")
       end
     end
 
@@ -357,7 +356,7 @@ describe Mongoid::Config do
     end
 
     it "allows the setting of a default value" do
-      Mongoid::Config.test_setting.should == true
+      Mongoid::Config.test_setting.should be_true
     end
   end
 
@@ -473,7 +472,7 @@ describe Mongoid::Config do
   describe ".reset" do
 
     it "reverts to the defaults" do
-      described_class.reset.should == described_class.defaults
+      described_class.reset.should eq(described_class.defaults)
     end
   end
 end

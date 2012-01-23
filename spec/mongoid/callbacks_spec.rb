@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Callbacks do
 
-  before do
-    [ Band, ParentDoc, ValidationCallback ].each(&:delete_all)
-  end
-
   class TestClass
     include Mongoid::Callbacks
   end
@@ -72,7 +68,7 @@ describe Mongoid::Callbacks do
     end
 
     it "runs after document instantiation" do
-      game.name.should == "Testing"
+      game.name.should eq("Testing")
     end
   end
 
@@ -83,7 +79,7 @@ describe Mongoid::Callbacks do
     end
 
     it "runs after document build (references_many)" do
-      weapon.name.should == "Holy Hand Grenade (5)"
+      weapon.name.should eq("Holy Hand Grenade (5)")
     end
 
     let(:implant) do
@@ -91,7 +87,7 @@ describe Mongoid::Callbacks do
     end
 
     it "runs after document build (embeds_many)" do
-      implant.name.should == 'Cochlear Implant (5)'
+      implant.name.should eq('Cochlear Implant (5)')
     end
 
     let(:powerup) do
@@ -99,7 +95,7 @@ describe Mongoid::Callbacks do
     end
 
     it "runs after document build (references_one)" do
-      powerup.name.should == "Quad Damage (5)"
+      powerup.name.should eq("Quad Damage (5)")
     end
 
     let(:augmentation) do
@@ -107,7 +103,7 @@ describe Mongoid::Callbacks do
     end
 
     it "runs after document build (embeds_one)" do
-      augmentation.name.should == "Infolink (5)"
+      augmentation.name.should eq("Infolink (5)")
     end
   end
 
@@ -121,11 +117,11 @@ describe Mongoid::Callbacks do
 
       before do
         artist.expects(:before_create_stub).returns(true)
+        artist.save
       end
 
-      it "should get saved" do
-        artist.save.should == true
-        artist.persisted?.should == true
+      it "gets saved" do
+        artist.persisted?.should be_true
       end
     end
 
@@ -133,11 +129,11 @@ describe Mongoid::Callbacks do
 
       before do
         artist.expects(:before_create_stub).returns(false)
+        artist.save
       end
 
-      it "should not get saved" do
-        artist.save.should == false
-        artist.persisted?.should == false
+      it "does not get saved" do
+        artist.persisted?.should be_false
       end
     end
   end
@@ -154,23 +150,25 @@ describe Mongoid::Callbacks do
         artist.delete
       end
 
-      context "callback returns true" do
+      context "when the callback returns true" do
+
         before do
           artist.expects(:before_save_stub).returns(true)
         end
 
-        it "should return true" do
-          artist.save.should == true
+        it "the save returns true" do
+          artist.save.should be_true
         end
       end
 
-      context "callback returns false" do
+      context "when callback returns false" do
+
         before do
           artist.expects(:before_save_stub).returns(false)
         end
 
-        it "should return false" do
-          artist.save.should == false
+        it "the save returns false" do
+          artist.save.should be_false
         end
       end
     end
@@ -187,23 +185,25 @@ describe Mongoid::Callbacks do
         artist.delete
       end
 
-      context "callback returns true" do
+      context "when the callback returns true" do
+
         before do
           artist.expects(:before_save_stub).returns(true)
         end
 
-        it "should return true" do
-          artist.save.should == true
+        it "the save returns true" do
+          artist.save.should be_true
         end
       end
 
-      context "callback returns false" do
+      context "when the callback returns false" do
+
         before do
           artist.expects(:before_save_stub).returns(false)
         end
 
-        it "should return false" do
-          artist.save.should == false
+        it "the save returns false" do
+          artist.save.should be_false
         end
       end
     end
@@ -223,25 +223,25 @@ describe Mongoid::Callbacks do
       artist.delete
     end
 
-    context "callback returns true" do
+    context "when the callback returns true" do
 
       before do
         artist.expects(:before_destroy_stub).returns(true)
       end
 
-      it "should return true" do
-        artist.destroy.should == true
+      it "the destroy returns true" do
+        artist.destroy.should be_true
       end
     end
 
-    context "callback returns false" do
+    context "when the callback returns false" do
 
       before do
         artist.expects(:before_destroy_stub).returns(false)
       end
 
-      it "should return false" do
-        artist.destroy.should == false
+      it "the destroy returns false" do
+        artist.destroy.should be_false
       end
     end
   end
@@ -1173,10 +1173,10 @@ describe Mongoid::Callbacks do
 
   context "callback on valid?" do
 
-    it "should go in all validation callback in good order" do
+    it "goes in all validation callback in good order" do
       shin = ValidationCallback.new
       shin.valid?
-      shin.history.should == [:before_validation, :validate, :after_validation]
+      shin.history.should eq([:before_validation, :validate, :after_validation])
     end
   end
 
@@ -1192,7 +1192,7 @@ describe Mongoid::Callbacks do
 
     it "does not duplicate the child documents" do
       parent.child_docs.create(:position => 1)
-      ParentDoc.find(parent.id).child_docs.size.should == 1
+      ParentDoc.find(parent.id).child_docs.size.should eq(1)
     end
   end
 
@@ -1210,7 +1210,7 @@ describe Mongoid::Callbacks do
 
       it "fails to save" do
         person.should be_valid
-        person.save.should == false
+        person.save.should be_false
       end
 
       it "is a new record" do
@@ -1242,13 +1242,9 @@ describe Mongoid::Callbacks do
         end
       end
 
-      after do
-        Person.delete_all
-      end
-
       it "#save returns false" do
         person.should be_valid
-        person.save.should == false
+        person.save.should be_false
       end
 
       it "is a not a new record" do

@@ -2,18 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Safety do
 
-  before(:all) do
-    Mongoid.autocreate_indexes = true
-  end
-
-  before do
-    Person.delete_all
-  end
-
-  after do
-    Mongoid.autocreate_indexes = false
-  end
-
   describe ".safely" do
 
     context "when global safe mode is false" do
@@ -31,11 +19,15 @@ describe Mongoid::Safety do
         context "when no error occurs" do
 
           it "inserts the document" do
-            Person.count.should == 1
+            Person.count.should eq(1)
           end
         end
 
         context "when a mongodb error occurs" do
+
+          before do
+            Person.create_indexes
+          end
 
           it "bubbles up to the caller" do
             lambda {
@@ -46,7 +38,7 @@ describe Mongoid::Safety do
 
         context "when using .safely(false)" do
 
-          it "should ignore mongodb error" do
+          it "ignores mongodb error" do
             Person.safely(false).create(:ssn => "432-97-1111").should be_true
           end
 
@@ -62,11 +54,15 @@ describe Mongoid::Safety do
         context "when no error occurs" do
 
           it "inserts the document" do
-            Person.count.should == 1
+            Person.count.should eq(1)
           end
         end
 
         context "when a mongodb error occurs" do
+
+          before do
+            Person.create_indexes
+          end
 
           it "bubbles up to the caller" do
             lambda {
@@ -97,6 +93,10 @@ describe Mongoid::Safety do
             Person.new(:ssn => "432-97-1113")
           end
 
+          before do
+            Person.create_indexes
+          end
+
           it "bubbles up to the caller" do
             lambda {
               person.safely.save(:ssn => "432-97-1113")
@@ -115,6 +115,10 @@ describe Mongoid::Safety do
 
           let(:person) do
             Person.new(:ssn => "432-97-1114")
+          end
+
+          before do
+            Person.create_indexes
           end
 
           it "bubbles up to the caller" do
@@ -161,21 +165,31 @@ describe Mongoid::Safety do
         context "when no error occurs" do
 
           it "inserts the document" do
-            Person.count.should == 1
+            Person.count.should eq(1)
           end
         end
 
         context "when a mongodb error occurs" do
 
-          it "should fail silently" do
+          before do
+            Person.create_indexes
+          end
+
+          it "fails silently" do
             Person.unsafely.create(:ssn => "432-97-1111").should be_true
           end
 
-          it "should still use defaults for subsequent requests" do
-            Person.unsafely.create(:ssn => "432-97-1111")
-            lambda {
-              Person.create(:ssn => "432-97-1111")
-            }.should raise_error(Mongo::OperationFailure)
+          context "when creating again" do
+
+            before do
+              Person.unsafely.create(:ssn => "432-97-1111")
+            end
+
+            it "uses defaults for subsequent requests" do
+              lambda {
+                Person.create(:ssn => "432-97-1111")
+              }.should raise_error(Mongo::OperationFailure)
+            end
           end
         end
       end
@@ -192,15 +206,25 @@ describe Mongoid::Safety do
             Person.new(:ssn => "432-97-1113")
           end
 
-          it "should fail silently" do
+          before do
+            Person.create_indexes
+          end
+
+          it "fails silently" do
             person.unsafely.save(:ssn => "432-97-1113").should be_true
           end
 
-          it "should still use defaults for subsequent requests" do
-            person.unsafely.save(:ssn => "432-97-1113")
-            lambda {
-              Person.create(:ssn => "432-97-1113")
-            }.should raise_error(Mongo::OperationFailure)
+          context "when persisting again" do
+
+            before do
+              person.unsafely.save(:ssn => "432-97-1113")
+            end
+
+            it "uses defaults for subsequent requests" do
+              lambda {
+                Person.create(:ssn => "432-97-1113")
+              }.should raise_error(Mongo::OperationFailure)
+            end
           end
         end
       end

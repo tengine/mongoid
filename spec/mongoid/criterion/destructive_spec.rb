@@ -15,9 +15,7 @@ describe Mongoid::Criteria do
   end
 
   before do
-    Person.delete_all
     Person.create(:title => "Madam")
-
     2.times do |n|
       Person.create(
         :title => "Sir",
@@ -43,11 +41,11 @@ describe Mongoid::Criteria do
         end
 
         it "deletes the removes the documents from the database" do
-          Person.count.should == 1
+          Person.count.should eq(1)
         end
 
         it "returns the number removed" do
-          removed.should == 2
+          removed.should eq(2)
         end
       end
 
@@ -68,11 +66,11 @@ describe Mongoid::Criteria do
           end
 
           it "deletes the removes the documents from the database" do
-            person.addresses.count.should == 1
+            person.addresses.count.should eq(1)
           end
 
           it "returns the number removed" do
-            removed.should == 1
+            removed.should eq(1)
           end
         end
 
@@ -91,11 +89,11 @@ describe Mongoid::Criteria do
           end
 
           it "deletes the removes the documents from the database" do
-            person.addresses.count.should == 0
+            person.addresses.count.should eq(0)
           end
 
           it "returns the number removed" do
-            removed.should == 2
+            removed.should eq(2)
           end
         end
       end

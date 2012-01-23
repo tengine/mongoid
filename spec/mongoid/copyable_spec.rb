@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Copyable do
 
-  before do
-    Person.delete_all
-  end
-
   [ :clone, :dup ].each do |method|
 
     describe "##{method}" do
@@ -57,7 +53,7 @@ describe Mongoid::Copyable do
           end
 
           it "has a different id from the original" do
-            copy.id.should_not == person.id
+            copy.id.should_not eq(person.id)
           end
 
           it "does not copy the versions" do
@@ -73,7 +69,7 @@ describe Mongoid::Copyable do
           end
 
           it "copys embeds many documents" do
-            copy.addresses.should == person.addresses
+            copy.addresses.should eq(person.addresses)
           end
 
           it "creates new embeds many instances" do
@@ -81,7 +77,7 @@ describe Mongoid::Copyable do
           end
 
           it "copys embeds one documents" do
-            copy.name.should == person.name
+            copy.name.should eq(person.name)
           end
 
           it "creates a new embeds one instance" do
@@ -99,8 +95,8 @@ describe Mongoid::Copyable do
           Mongoid::Copyable::COPYABLES.each do |name|
 
             it "dups #{name}" do
-              copy.instance_variable_get(name).should_not
-                be_eql(person.instance_variable_get(name))
+              copy.instance_variable_get("@#{name}").should_not
+                be_eql(person.instance_variable_get("@#{name}"))
             end
           end
 
@@ -115,15 +111,15 @@ describe Mongoid::Copyable do
             end
 
             it "persists the attributes" do
-              reloaded.title.should == "Sir"
+              reloaded.title.should eq("Sir")
             end
 
             it "persists the embeds many relation" do
-              reloaded.addresses.should == person.addresses
+              reloaded.addresses.should eq(person.addresses)
             end
 
             it "persists the embeds one relation" do
-              reloaded.name.should == person.name
+              reloaded.name.should eq(person.name)
             end
           end
         end
@@ -154,7 +150,7 @@ describe Mongoid::Copyable do
           end
 
           it "has a different id from the original" do
-            copy.id.should_not == person.id
+            copy.id.should_not eq(person.id)
           end
 
           it "does not copy the versions" do
@@ -166,7 +162,7 @@ describe Mongoid::Copyable do
           end
 
           it "copys embeds many documents" do
-            copy.addresses.should == person.addresses
+            copy.addresses.should eq(person.addresses)
           end
 
           it "creates new embeds many instances" do
@@ -174,7 +170,7 @@ describe Mongoid::Copyable do
           end
 
           it "copys embeds one documents" do
-            copy.name.should == person.name
+            copy.name.should eq(person.name)
           end
 
           it "creates a new embeds one instance" do
@@ -192,8 +188,8 @@ describe Mongoid::Copyable do
           Mongoid::Copyable::COPYABLES.each do |name|
 
             it "dups #{name}" do
-              copy.instance_variable_get(name).should_not
-                be_eql(person.instance_variable_get(name))
+              copy.instance_variable_get("@#{name}").should_not
+                be_eql(person.instance_variable_get("@#{name}"))
             end
           end
 
@@ -208,15 +204,15 @@ describe Mongoid::Copyable do
             end
 
             it "persists the attributes" do
-              reloaded.title.should == "Sir"
+              reloaded.title.should eq("Sir")
             end
 
             it "persists the embeds many relation" do
-              reloaded.addresses.should == person.addresses
+              reloaded.addresses.should eq(person.addresses)
             end
 
             it "persists the embeds one relation" do
-              reloaded.name.should == person.name
+              reloaded.name.should eq(person.name)
             end
           end
         end
@@ -237,7 +233,7 @@ describe Mongoid::Copyable do
         end
 
         it "has a different id from the original" do
-          copy.id.should_not == person.id
+          copy.id.should_not eq(person.id)
         end
 
         it "returns a new instance" do
@@ -245,7 +241,7 @@ describe Mongoid::Copyable do
         end
 
         it "copys embeds many documents" do
-          copy.addresses.should == person.addresses
+          copy.addresses.should eq(person.addresses)
         end
 
         it "creates new embeds many instances" do
@@ -253,7 +249,7 @@ describe Mongoid::Copyable do
         end
 
         it "copys embeds one documents" do
-          copy.name.should == person.name
+          copy.name.should eq(person.name)
         end
 
         it "creates a new embeds one instance" do
@@ -275,8 +271,8 @@ describe Mongoid::Copyable do
         Mongoid::Copyable::COPYABLES.each do |name|
 
           it "dups #{name}" do
-            copy.instance_variable_get(name).should_not
-              be_eql(person.instance_variable_get(name))
+            copy.instance_variable_get("@#{name}").should_not
+              be_eql(person.instance_variable_get("@#{name}"))
           end
         end
 
@@ -291,15 +287,15 @@ describe Mongoid::Copyable do
           end
 
           it "persists the attributes" do
-            reloaded.title.should == "Sir"
+            reloaded.title.should eq("Sir")
           end
 
           it "persists the embeds many relation" do
-            reloaded.addresses.should == person.addresses
+            reloaded.addresses.should eq(person.addresses)
           end
 
           it "persists the embeds one relation" do
-            reloaded.name.should == person.name
+            reloaded.name.should eq(person.name)
           end
         end
       end

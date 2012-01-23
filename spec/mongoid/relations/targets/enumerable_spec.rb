@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Relations::Targets::Enumerable do
 
-  before do
-    [ Person, Post ].each(&:delete_all)
-  end
-
   describe "#==" do
 
     context "when comparing with an enumerable" do
@@ -277,16 +273,8 @@ describe Mongoid::Relations::Targets::Enumerable do
       enumerable.clone
     end
 
-    it "clones the first document in the enumerable" do
-      cloned.first.title.should eq("one")
-    end
-
     it "does not retain the first id" do
       cloned.first.should_not eq(post)
-    end
-
-    it "clones the last document in the enumerable" do
-      cloned.last.title.should eq("two")
     end
 
     it "does not retain the last id" do
@@ -432,7 +420,7 @@ describe Mongoid::Relations::Targets::Enumerable do
       end
 
       it "returns the remaining docs" do
-        deleted.should eq([])
+        deleted.should be_empty
       end
     end
 
@@ -463,7 +451,7 @@ describe Mongoid::Relations::Targets::Enumerable do
       end
 
       it "returns the remaining docs" do
-        deleted.should eq([])
+        deleted.should be_empty
       end
     end
 
@@ -490,7 +478,7 @@ describe Mongoid::Relations::Targets::Enumerable do
       end
 
       it "returns the remaining docs" do
-        deleted.should eq([])
+        deleted.should be_empty
       end
     end
 
@@ -1451,8 +1439,8 @@ describe Mongoid::Relations::Targets::Enumerable do
     end
 
     it "serializes the enumerable" do
-      json.size.should == 1
-      json[0]['title'].should == post.title
+      json.size.should eq(1)
+      json[0]['title'].should eq(post.title)
     end
   end
 
@@ -1475,7 +1463,7 @@ describe Mongoid::Relations::Targets::Enumerable do
     end
 
     it "serializes the enumerable" do
-      json.size.should == 1
+      json.size.should eq(1)
       json[0].keys.should_not include('title')
     end
   end

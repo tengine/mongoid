@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Persistence::Atomic::Pop do
 
-  before do
-    Person.delete_all
-  end
-
   describe "#persist" do
 
     context "when the field exists" do
@@ -25,11 +21,11 @@ describe Mongoid::Persistence::Atomic::Pop do
         end
 
         it "pops the value from the array" do
-          person.aliases.should == [ "007", "008" ]
+          person.aliases.should eq([ "007", "008" ])
         end
 
         it "persists the data" do
-          reloaded.aliases.should == [ "007", "008" ]
+          reloaded.aliases.should eq([ "007", "008" ])
         end
 
         it "removes the field from the dirty attributes" do
@@ -41,7 +37,7 @@ describe Mongoid::Persistence::Atomic::Pop do
         end
 
         it "returns the new array value" do
-          popped.should == [ "007", "008" ]
+          popped.should eq([ "007", "008" ])
         end
       end
 
@@ -56,11 +52,11 @@ describe Mongoid::Persistence::Atomic::Pop do
         end
 
         it "pops the value from the array" do
-          person.aliases.should == [ "008", "009" ]
+          person.aliases.should eq([ "008", "009" ])
         end
 
         it "persists the data" do
-          reloaded.aliases.should == [ "008", "009" ]
+          reloaded.aliases.should eq([ "008", "009" ])
         end
 
         it "removes the field from the dirty attributes" do
@@ -72,7 +68,7 @@ describe Mongoid::Persistence::Atomic::Pop do
         end
 
         it "returns the new array value" do
-          popped.should == [ "008", "009" ]
+          popped.should eq([ "008", "009" ])
         end
       end
     end

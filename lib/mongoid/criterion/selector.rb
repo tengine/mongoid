@@ -63,8 +63,8 @@ module Mongoid #:nodoc:
         #
         # @return [ String ] The inspected selector.
         def inspect
-          ret = self.keys.inject([]) do |ret, key|
-            ret << "#{key.inspect}=>#{self[key].inspect}"
+          ret = self.keys.inject([]) do |memo, key|
+            memo << "#{key.inspect}=>#{self[key].inspect}"
           end
           "{#{ret.sort.join(', ')}}"
         end
@@ -84,7 +84,6 @@ module Mongoid #:nodoc:
       #
       # @since 1.0.0
       def try_to_typecast(key, value)
-        access = key.to_s
         if field = fields[key.to_s] || fields[aliased_fields[key.to_s]]
           typecast_value_for(field, value)
         elsif proper_and_or_value?(key, value)
@@ -103,7 +102,7 @@ module Mongoid #:nodoc:
       def handle_and_or_value(values)
         [].tap do |result|
            result.push(*values.map do |value|
-            Hash[value.map{ |key, value| [key, try_to_typecast(key, value)] }]
+            Hash[value.map{ |_key, _value| [_key, try_to_typecast(_key, _value)] }]
           end)
         end
       end

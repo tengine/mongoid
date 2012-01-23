@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Criterion::Exclusion do
 
-  before do
-    Person.delete_all
-  end
-
   let(:base) do
     Mongoid::Criteria.new(Person)
   end
@@ -48,13 +44,13 @@ describe Mongoid::Criterion::Exclusion do
     end
 
     it "adds the $ne query to the selector" do
-      criteria.selector.should ==
+      criteria.selector.should eq(
         {
           :title =>
             { "$ne" => "Bad Title"},
           :text =>
             { "$ne" => "Bad Text" }
-        }
+        })
     end
 
     it "returns a copy" do
@@ -70,10 +66,7 @@ describe Mongoid::Criterion::Exclusion do
         end
 
         it "updates the selector" do
-          criteria.selector.should ==
-            {
-              :_id => { "$ne" => "1" }
-            }
+          criteria.selector.should eq({ :_id => { "$ne" => "1" }})
         end
       end
 
@@ -84,10 +77,7 @@ describe Mongoid::Criterion::Exclusion do
         end
 
         it "updates the selector" do
-          criteria.selector.should ==
-            {
-              :_id => { "$ne" => "1" }
-            }
+          criteria.selector.should eq({ :_id => { "$ne" => "1" }})
         end
       end
     end
@@ -101,13 +91,14 @@ describe Mongoid::Criterion::Exclusion do
       end
 
       it "appends to the selector" do
-        criteria.selector.should ==
+        criteria.selector.should eq(
           {
             :title =>
               { "$ne" => "Bad Title"},
             :text =>
               { "$ne" => "Bad Text" }
           }
+        )
       end
     end
   end
@@ -123,7 +114,7 @@ describe Mongoid::Criterion::Exclusion do
     end
 
     it "adds the exclusion to the options" do
-      options.should == { :field => 1 }
+      options.should eq({ :field => 1 })
     end
 
     it "returns a copy" do
@@ -138,10 +129,10 @@ describe Mongoid::Criterion::Exclusion do
     end
 
     it "adds the exclusion to the selector" do
-      criteria.selector.should == {
+      criteria.selector.should eq({
         :title => { "$nin" => ["title1", "title2"] },
         :text => { "$nin" => ["test"] }
-      }
+      })
     end
 
     it "returns a copy" do
@@ -157,10 +148,10 @@ describe Mongoid::Criterion::Exclusion do
       end
 
       it "appends to the nin selector" do
-        criteria.selector.should == {
+        criteria.selector.should eq({
           :title => { "$nin" => ["title1", "title2", "title3"] },
           :text => { "$nin" => ["test"] }
-        }
+        })
       end
     end
   end
@@ -174,14 +165,14 @@ describe Mongoid::Criterion::Exclusion do
       end
 
       it "adds the options for limiting by fields" do
-        criteria.options.should == { :fields => { :_type => 1, :title => 1, :text => 1 } }
+        criteria.options.should eq({ :fields => { :_type => 1, :title => 1, :text => 1 } })
       end
 
       it "returns a copy" do
         base.only.should_not eql(base)
 
       end
-      it "should assign the field list" do
+      it "assigns the field list" do
         criteria.without(:title, :text).field_list == [:title, :text]
       end
     end
@@ -196,7 +187,7 @@ describe Mongoid::Criterion::Exclusion do
         criteria.options[:fields].should be_nil
       end
 
-      it "should not assign the field list" do
+      it "does not assign the field list" do
         criteria.only.field_list.should be_nil
       end
     end
@@ -226,11 +217,11 @@ describe Mongoid::Criterion::Exclusion do
       end
 
       it "adds the options for excluding the fields" do
-        criteria.options.should == { :fields => { :title => 0, :text => 0 } }
+        criteria.options.should eq({ :fields => { :title => 0, :text => 0 } })
       end
 
       it "returns self" do
-        criteria.without.should == criteria
+        criteria.without.should eq(criteria)
       end
     end
 
@@ -244,7 +235,7 @@ describe Mongoid::Criterion::Exclusion do
         criteria.options[:fields].should be_nil
       end
 
-      it "should not assign the field list" do
+      it "does not assign the field list" do
         criteria.field_list.should be_nil
       end
     end

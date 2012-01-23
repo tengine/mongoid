@@ -12,7 +12,7 @@ module Mongoid #:nodoc:
                         :includes, :limit, :max, :min, :not_in, :only,
                         :order_by, :search, :skip, :sum, :without, :where,
                         :update, :update_all, :near ]
-    delegate *(critera_methods.dup << { :to => :criteria })
+    delegate(*(critera_methods.dup << { :to => :criteria }))
 
     # Find all documents that match the given conditions.
     #
@@ -101,6 +101,23 @@ module Mongoid #:nodoc:
     # @return [ Document ] A matching or newly initialized document.
     def find_or_initialize_by(attrs = {}, &block)
       find_or(:new, attrs, &block)
+    end
+
+    # Find the first +Document+ given the conditions, or raises
+    # Mongoid::Errors::DocumentNotFound
+    #
+    # @example Find the document by attribute other than id
+    #   Person.find_by(:username => "superuser")
+    #
+    # @param [ Hash ] attrs The attributes to check.
+    #
+    # @raise [ Errors::DocumentNotFound ] If no document found.
+    #
+    # @return [ Document ] A matching document.
+    #
+    # @since 3.0.0
+    def find_by(attrs = {})
+      where(attrs).first || raise(Errors::DocumentNotFound.new(self, attrs))
     end
 
     # Find the first +Document+ given the conditions.

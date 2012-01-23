@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Scope do
 
-  before do
-    Person.delete_all
-  end
-
   describe ".initialize" do
 
     let(:conditions) do
@@ -17,7 +13,7 @@ describe Mongoid::Scope do
     end
 
     it "stores the provided conditions" do
-      scope.conditions.should == conditions
+      scope.conditions.should eq(conditions)
     end
 
     context "when a block is passed in" do

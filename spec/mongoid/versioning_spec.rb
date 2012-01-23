@@ -2,10 +2,6 @@ require "spec_helper"
 
 describe Mongoid::Versioning do
 
-  before do
-    [ WikiPage, Comment ].each(&:delete_all)
-  end
-
   describe ".max_versions" do
 
     context "when provided an integer" do
@@ -19,7 +15,7 @@ describe Mongoid::Versioning do
       end
 
       it "sets the class version max" do
-        WikiPage.version_max.should == 10
+        WikiPage.version_max.should eq(10)
       end
     end
 
@@ -34,7 +30,7 @@ describe Mongoid::Versioning do
       end
 
       it "sets the class version max" do
-        WikiPage.version_max.should == 10
+        WikiPage.version_max.should eq(10)
       end
     end
   end
@@ -210,6 +206,27 @@ describe Mongoid::Versioning do
       end
 
       context "when saving over the number of maximum versions" do
+
+        context "when the document is paranoid" do
+
+          let!(:post) do
+            ParanoidPost.create(:title => "test")
+          end
+
+          before do
+            3.times do |n|
+              post.update_attribute(:title, "#{n}")
+            end
+          end
+
+          it "only versions the maximum amount" do
+            post.versions.target.size.should eq(2)
+          end
+
+          it "persists the changes" do
+            post.reload.versions.target.size.should eq(2)
+          end
+        end
 
         context "when saving in succession" do
 

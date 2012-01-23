@@ -17,12 +17,13 @@ module Mongoid #:nodoc
     include ActiveModel::Observing
 
     # @attribute [rw] master The master database.
-    attr_accessor :master
+    attr_accessor :reconnect
 
     option :allow_dynamic_fields, :default => true
     option :autocreate_indexes, :default => false
     option :identity_map_enabled, :default => false
     option :include_root_in_json, :default => false
+    option :include_type_for_serialization, :default => false
     option :max_retries_on_connection_failure, :default => 0
     option :parameterize_keys, :default => true
     option :scope_overwrite_exception, :default => false
@@ -41,6 +42,7 @@ module Mongoid #:nodoc
     #
     # @return [ Hash ] A hash of secondary databases.
     def databases
+      @databases ||= nil
       configure_extras(@settings["databases"]) unless @databases || !@settings
       @databases || {}
     end
@@ -170,8 +172,8 @@ module Mongoid #:nodoc
         @master, @slaves = configure_databases(@settings) unless @settings.blank?
         raise Errors::InvalidDatabase.new(nil) unless @master
       end
-      if @reconnect
-        @reconnect = false
+      if reconnect
+        self.reconnect = false
         reconnect!
       end
       @master
@@ -191,7 +193,7 @@ module Mongoid #:nodoc
       else
         # We set a @reconnect flag so that #master knows to reconnect the next
         # time the connection is accessed.
-        @reconnect = true
+        self.reconnect = true
       end
     end
 
