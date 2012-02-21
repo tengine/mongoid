@@ -1,8 +1,5 @@
-Overview
+Mongoid [![Build Status](https://secure.travis-ci.org/mongoid/mongoid.png?branch=master&.png)](http://travis-ci.org/mongoid/mongoid)
 ========
-
-About Mongoid
--------------
 
 Mongoid is an ODM (Object-Document-Mapper) framework for MongoDB in Ruby.
 
@@ -15,11 +12,7 @@ Project Tracking
 Compatibility
 -------------
 
-Mongoid is tested against Ruby 1.9.2, 1.9.3, Rubinius (1.9), and JRuby (1.9).
-
-<img src="https://secure.travis-ci.org/mongoid/mongoid.png?branch=master&.png"/>
-
-[Build History](http://travis-ci.org/mongoid/mongoid)
+Mongoid is tested against MRI 1.9.2, 1.9.3, 2.0.0, and JRuby (1.9).
 
 Documentation
 -------------

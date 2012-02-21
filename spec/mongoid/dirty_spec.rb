@@ -816,27 +816,27 @@ describe Mongoid::Dirty do
 
   context "when fields have been defined pre-dirty inclusion" do
 
-    let(:person) do
-      Person.new
+    let(:document) do
+      Dokument.new
     end
 
     it "defines a _change method" do
-      person.updated_at_change.should be_nil
+      document.updated_at_change.should be_nil
     end
 
     it "defines a _changed? method" do
-      person.updated_at_changed?.should be_false
+      document.updated_at_changed?.should be_false
     end
 
     it "defines a _changes method" do
-      person.updated_at_was.should be_nil
+      document.updated_at_was.should be_nil
     end
   end
 
   context "when only embedded documents change" do
 
     let!(:person) do
-      Person.create(:ssn => "132-11-1111")
+      Person.create
     end
 
     context "when the child is an embeds one" do
@@ -923,7 +923,7 @@ describe Mongoid::Dirty do
   context "when changing a hash of hashes" do
 
     let!(:person) do
-      Person.create(:ssn => "123-11-1111", :map => { "test" => {}})
+      Person.create(:map => { "test" => {}})
     end
 
     before do
@@ -940,7 +940,7 @@ describe Mongoid::Dirty do
   context "when modifying a many to many key" do
 
     let!(:person) do
-      Person.create(:ssn => "342-89-2439")
+      Person.create
     end
 
     let!(:preference) do
@@ -961,7 +961,7 @@ describe Mongoid::Dirty do
   context "when accessing an array field" do
 
     let!(:person) do
-      Person.create(:ssn => "342-89-2431")
+      Person.create
     end
 
     let(:from_db) do
@@ -983,7 +983,7 @@ describe Mongoid::Dirty do
   context "when reloading an unchanged document" do
 
     let!(:person) do
-      Person.create(:ssn => "452-11-1092")
+      Person.create
     end
 
     let(:from_db) do
@@ -1004,7 +1004,6 @@ describe Mongoid::Dirty do
     let(:person) do
       Person.create(
         :title => "MC",
-        :ssn => "234-11-2533",
         :some_dynamic_field => 'blah'
       )
     end
@@ -1022,7 +1021,7 @@ describe Mongoid::Dirty do
     it "marks field changes" do
       person.changes.should eq({
         "title" => [ "MC", "DJ" ],
-        "ssn" => [ "234-11-2533", "222-22-2222" ],
+        "ssn" => [ nil, "222-22-2222" ],
         "some_dynamic_field" => [ "blah", "bloop" ]
       })
     end
@@ -1061,7 +1060,7 @@ describe Mongoid::Dirty do
 
       it "stores previous changes" do
         person.previous_changes["title"].should eq([ "MC", "DJ" ])
-        person.previous_changes["ssn"].should eq([ "234-11-2533", "222-22-2222" ])
+        person.previous_changes["ssn"].should eq([ nil, "222-22-2222" ])
       end
     end
 

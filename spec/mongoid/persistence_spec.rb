@@ -4,12 +4,10 @@ describe Mongoid::Persistence do
 
   before(:all) do
     Mongoid.persist_in_safe_mode = true
-    Mongoid.parameterize_keys = false
   end
 
   after(:all) do
     Mongoid.persist_in_safe_mode = false
-    Mongoid.parameterize_keys = true
   end
 
   describe ".create" do
@@ -17,7 +15,7 @@ describe Mongoid::Persistence do
     context "when providing attributes" do
 
       let(:person) do
-        Person.create(:title => "Sensei", :ssn => "666-66-6666")
+        Person.create(:title => "Sensei")
       end
 
       it "it saves the document" do
@@ -267,7 +265,7 @@ describe Mongoid::Persistence do
     describe "##{method}" do
 
       let(:person) do
-        Person.create(:ssn => "218-32-6789")
+        Person.create
       end
 
       context "when removing a root document" do
@@ -368,7 +366,31 @@ describe Mongoid::Persistence do
   describe "#save" do
 
     let(:person) do
-      Person.new(:ssn => "811-82-8345")
+      Person.new
+    end
+
+    context "when the document has been instantiated with limited fields" do
+
+      before do
+        person.age = 20
+        person.save
+      end
+
+      context "when a default is excluded" do
+
+        let(:limited) do
+          Person.only(:_id).find(person.id)
+        end
+
+        it "does not flag the excluded fields as dirty" do
+          limited.changes.should be_empty
+        end
+
+        it "does not overwrite with the default" do
+          limited.save
+          limited.reload.age.should eq(20)
+        end
+      end
     end
 
     context "when saving with a hash field with invalid keys" do
@@ -409,7 +431,7 @@ describe Mongoid::Persistence do
       context "when performing modification and insert ops" do
 
         let(:person) do
-          Person.create(:title => "Blah", :ssn => "244-01-1112")
+          Person.create(:title => "Blah")
         end
 
         let!(:address) do
@@ -462,7 +484,6 @@ describe Mongoid::Persistence do
         let!(:person) do
           Person.create(
             :title => "Blah",
-            :ssn => "244-01-1112",
             :addresses => [ address ]
           )
         end
@@ -505,7 +526,7 @@ describe Mongoid::Persistence do
       context "when removing elements without using delete or destroy" do
 
         let!(:person) do
-          Person.create!(:title => "Blah", :ssn => "244-01-1112")
+          Person.create!(:title => "Blah")
         end
 
         let(:from_db) do
@@ -598,7 +619,7 @@ describe Mongoid::Persistence do
     context "when setting an array field" do
 
       let(:person) do
-        Person.create(:ssn => "432-11-1123", :aliases => [])
+        Person.create(:aliases => [])
       end
 
       before do
@@ -619,7 +640,7 @@ describe Mongoid::Persistence do
       context "when the field is true" do
 
         let(:person) do
-          Person.new(:ssn => "234-11-1232", :terms => true)
+          Person.new(:terms => true)
         end
 
         context "when setting to false" do
@@ -777,7 +798,7 @@ describe Mongoid::Persistence do
     context "when updating a deeply embedded document" do
 
       let!(:person) do
-        Person.create(:ssn => "345-12-1212")
+        Person.create
       end
 
       let!(:address) do
@@ -808,10 +829,28 @@ describe Mongoid::Persistence do
 
   describe "#update_attributes" do
 
+    context "when providing options" do
+
+      let(:person) { Person.create }
+      let(:params) { [{:pets => false}, {:as => :default}]}
+
+      it "accepts the additional parameter" do
+        expect {
+          person.update_attributes(*params)
+        }.to_not raise_error(ArgumentError)
+      end
+
+      it "calls assign_attributes" do
+        person.expects(:assign_attributes).with(*params)
+        person.update_attributes(*params)
+      end
+
+    end
+
     context "when saving with a hash field with invalid keys" do
 
       let(:person) do
-        Person.create(:ssn => "717-98-2342")
+        Person.create
       end
 
       it "raises an error" do
@@ -824,7 +863,7 @@ describe Mongoid::Persistence do
     context "when validation passes" do
 
       let(:person) do
-        Person.create(:ssn => "717-98-9999")
+        Person.create
       end
 
       let!(:saved) do
@@ -847,7 +886,7 @@ describe Mongoid::Persistence do
     context "when the document has been destroyed" do
 
       let!(:person) do
-        Person.create(:ssn => "717-98-9999")
+        Person.create
       end
 
       before do
@@ -864,7 +903,7 @@ describe Mongoid::Persistence do
     context "when updating through a one-to-one relation" do
 
       let(:person) do
-        Person.create!(:ssn => "666-77-8888")
+        Person.create!
       end
 
       let(:game) do
@@ -892,7 +931,7 @@ describe Mongoid::Persistence do
       end
 
       before do
-        person.update_attributes(:ssn => "555-55-1235", :pets => false, :title => nil)
+        person.update_attributes(:pets => false, :title => nil)
       end
 
       it "saves the new record" do
@@ -905,7 +944,7 @@ describe Mongoid::Persistence do
       context "when providing a parent to a referenced in" do
 
         let!(:person) do
-          Person.create(:ssn => "666-66-6666")
+          Person.create
         end
 
         let!(:post) do
@@ -956,7 +995,7 @@ describe Mongoid::Persistence do
     context "when in a deeply nested hierarchy" do
 
       let!(:person) do
-        Person.new(:title => "The Boss", :ssn => "098-76-5432")
+        Person.new(:title => "The Boss")
       end
 
       let!(:phone_number) do
@@ -1012,6 +1051,24 @@ describe Mongoid::Persistence do
 
   describe "#update_attributes!" do
 
+    context "when providing options" do
+
+      let(:person) { Person.create }
+      let(:params) { [{:pets => false}, {:as => :default}]}
+
+      it "accepts the additional parameter" do
+        expect {
+          person.update_attributes!(*params)
+        }.to_not raise_error(ArgumentError)
+      end
+
+      it "calls assign_attributes" do
+        person.expects(:assign_attributes).with(*params)
+        person.update_attributes!(*params)
+      end
+
+    end
+
     context "when a callback returns false" do
 
       let(:oscar) do
@@ -1031,7 +1088,7 @@ describe Mongoid::Persistence do
     describe "##{method}" do
 
       let!(:person) do
-        Person.create(:ssn => "712-34-5111", :title => "sir")
+        Person.create(:title => "sir")
       end
 
       context "when no conditions are provided" do
@@ -1052,7 +1109,7 @@ describe Mongoid::Persistence do
       context "when conditions are provided" do
 
         let!(:person_two) do
-          Person.create(:ssn => "712-34-5112", :title => "madam")
+          Person.create
         end
 
         context "when in a conditions attribute" do
@@ -1127,7 +1184,7 @@ describe Mongoid::Persistence do
     context "when value is an empty string" do
 
       let(:person) do
-        Person.new(:ssn => "555-55-5555")
+        Person.new
       end
 
       before do
@@ -1147,7 +1204,7 @@ describe Mongoid::Persistence do
     end
 
     let(:person) do
-      Person.create(:ssn => "543-11-9999")
+      Person.create
     end
 
     context "when value is an empty string" do

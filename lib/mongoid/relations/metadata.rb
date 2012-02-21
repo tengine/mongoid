@@ -81,13 +81,9 @@ module Mongoid # :nodoc:
       #
       # @since 2.0.0.rc.1
       def cascade_strategy
-        if dependent?
-          strategy =
-            %{Mongoid::Relations::Cascading::#{dependent.to_s.classify}}
-          strategy.constantize
-        else
-          return nil
-        end
+        return nil unless dependent?
+
+        "Mongoid::Relations::Cascading::#{dependent.to_s.classify}".constantize
       end
 
       # Is this an embedded relations that allows callbacks to cascade down to
@@ -135,11 +131,12 @@ module Mongoid # :nodoc:
       #   metadata.criteria([ id_one, id_two ])
       #
       # @param [ Object ] object The foreign key used for the query.
+      # @param [ Class ] type The base class.
       #
       # @return [ Criteria ] The criteria.
       #
       # @since 2.1.0
-      def criteria(object, type = nil)
+      def criteria(object, type)
         query = relation.criteria(self, object, type)
         order ? query.order_by(order) : query
       end
@@ -363,6 +360,21 @@ module Mongoid # :nodoc:
         "  versioned:            #{versioned? || "No"}>\n"
       end
 
+      # Get the name of the inverse relations if they exists. If this is a
+      # polymorphic relation then just return the :as option that was defined.
+      #
+      # @example Get the names of the inverses.
+      #   metadata.inverses
+      #
+      # @param [ Document ] other The document to aid in the discovery.
+      #
+      # @return [ Array<Symbol> ] The inverse name.
+      def inverses(other = nil)
+        return [self[:inverse_of]] if has_key?(:inverse_of)
+        return self[:as] ? [self[:as]] : lookup_inverses(other) if polymorphic?
+        @inverse ||= [(cyclic? ? cyclic_inverse : inverse_relation)]
+      end
+
       # Get the name of the inverse relation if it exists. If this is a
       # polymorphic relation then just return the :as option that was defined.
       #
@@ -375,9 +387,9 @@ module Mongoid # :nodoc:
       #
       # @since 2.0.0.rc.1
       def inverse(other = nil)
-        return self[:inverse_of] if has_key?(:inverse_of)
-        return self[:as] || lookup_inverse(other) if polymorphic?
-        @inverse ||= (cyclic? ? cyclic_inverse : inverse_relation)
+        invs = inverses(other)
+        return nil unless invs.count == 1
+        invs.first
       end
 
       # Returns the inverse_class_name option of the relation.
@@ -479,7 +491,8 @@ module Mongoid # :nodoc:
       #
       # @since 2.0.0.rc.1
       def inverse_setter(other = nil)
-        "#{inverse(other)}="
+        inv = inverse(other)
+        inv ? "#{inv}=" : nil
       end
 
       # Returns the name of the field in which to store the name of the class
@@ -507,6 +520,30 @@ module Mongoid # :nodoc:
       # @since 2.0.0.rc.1
       def inverse_type_setter
         @inverse_type_setter ||= inverse_type ? "#{inverse_type}=" : nil
+      end
+
+      # Returns the name of the field in which to store the name of the inverse
+      # field for the polymorphic relation.
+      #
+      # @example Get the name of the field.
+      #   metadata.inverse_of_field
+      #
+      # @return [ String ] The name of the field for storing the name of the
+      # inverse field.
+      def inverse_of_field
+        @inverse_of_field ||=
+          relation.stores_foreign_key? && polymorphic? ? "#{name}_field" : nil
+      end
+
+      # Gets the setter for the field that stores the name of the inverse field
+      # on a polymorphic relation.
+      #
+      # @example Get the inverse type setter.
+      #   metadata.inverse_of_field_setter
+      #
+      # @return [ String ] The name of the setter.
+      def inverse_of_field_setter
+        @inverse_of_field_setter ||= inverse_of_field ? "#{inverse_of_field}=" : nil
       end
 
       # This returns the key that is to be used to grab the attributes for the
@@ -752,7 +789,31 @@ module Mongoid # :nodoc:
       #
       # @since 2.0.0.rc.1
       def classify
-        macro == :embedded_in ? name.to_s.camelize : name.to_s.classify
+        return name.to_s.camelize if macro == :embedded_in
+
+        "#{find_module}::#{name.to_s.classify}"
+      end
+
+      # Find the module the class with the specific name is in.
+      # This is done by starting at the inverse_class_name's
+      # module and stepping down to see where it is defined.
+      #
+      # @example Find the module.
+      #   metadata.find_module
+      #
+      # @return [String] The module.
+      def find_module
+        return nil unless inverse_class_name.present?
+        return nil unless name.present?
+
+        parts = inverse_class_name.split('::')
+        [].tap do |combinations|
+          parts.size.times do |i|
+            combinations << parts.combination(i).first
+          end
+        end.map{ |p| p.join('::') }.reverse.find do |mod|
+          ActiveSupport::Inflector.constantize(mod).constants.include?(name.to_s.classify.to_sym)
+        end
       end
 
       # Get the name of the inverse relation in a cyclic relation.
@@ -900,6 +961,22 @@ module Mongoid # :nodoc:
       # actual instance on the other side, since we cannot know the exact class
       # name to infer it from at load time.
       #
+      # @example Find the inverses.
+      #   metadata.lookup_inverses(other)
+      #
+      # @param [ Document ] : The inverse document.
+      #
+      # @return [ Array<String> ] The inverse names.
+      def lookup_inverses(other)
+        return nil unless other
+        matching_metas = other.class.relations.find_all { |key, meta| meta.as == name }
+        return matching_metas.map { |meta| meta[1].name }
+      end
+
+      # For polymorphic children, we need to figure out the inverse from the
+      # actual instance on the other side, since we cannot know the exact class
+      # name to infer it from at load time.
+      #
       # @example Find the inverse.
       #   metadata.lookup_inverse(other)
       #
@@ -909,10 +986,9 @@ module Mongoid # :nodoc:
       #
       # @since 2.0.0.rc.1
       def lookup_inverse(other)
-        return nil unless other
-        other.class.relations.each_pair do |key, meta|
-          return meta.name if meta.as == name
-        end
+        return nil unless invs = lookup_inverses(other)
+        return nil unless invs.count == 1
+        invs.first
       end
     end
   end

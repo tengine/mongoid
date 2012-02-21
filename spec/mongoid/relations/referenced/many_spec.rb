@@ -54,7 +54,7 @@ describe Mongoid::Relations::Referenced::Many do
           end
 
           let!(:person) do
-            Person.create(:ssn => "345-11-1124") do |doc|
+            Person.create do |doc|
               doc.posts << post
             end
           end
@@ -83,7 +83,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when the parent is not a new record" do
 
           let(:person) do
-            Person.create(:ssn => "554-44-3891")
+            Person.create
           end
 
           let(:post) do
@@ -151,6 +151,47 @@ describe Mongoid::Relations::Referenced::Many do
             it "contains the added document in the target" do
               person.posts.should include(post_two)
             end
+          end
+        end
+      end
+
+      context "when safely adding to the relation" do
+
+        let(:person) do
+          Person.create
+        end
+
+        context "when the operation succeeds" do
+
+          let(:post) do
+            Post.new
+          end
+
+          before do
+            person.posts.safely.send(method, post)
+          end
+
+          it "adds the document to the relation" do
+            person.posts.should eq([ post ])
+          end
+        end
+
+        context "when the operation fails" do
+
+          let!(:existing) do
+            Post.create
+          end
+
+          let(:post) do
+            Post.new do |doc|
+              doc._id = existing.id
+            end
+          end
+
+          it "raises an error" do
+            expect {
+              person.posts.safely.send(method, post)
+            }.to raise_error(Mongo::OperationFailure)
           end
         end
       end
@@ -290,7 +331,7 @@ describe Mongoid::Relations::Referenced::Many do
       context "when the parent is not a new record" do
 
         let(:person) do
-          Person.create(:ssn => "437-11-1112")
+          Person.create
         end
 
         let(:post) do
@@ -547,7 +588,7 @@ describe Mongoid::Relations::Referenced::Many do
       context "when the parent is not a new record" do
 
         let(:person) do
-          Person.create(:ssn => "437-11-1112")
+          Person.create
         end
 
         context "when dependent is destructive" do
@@ -678,7 +719,7 @@ describe Mongoid::Relations::Referenced::Many do
   describe "#avg" do
 
     let(:person) do
-      Person.create(:ssn => "123-45-6789")
+      Person.create
     end
 
     let(:post_one) do
@@ -768,7 +809,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when the parent is not a new record" do
 
           let(:person) do
-            Person.create(:ssn => "554-44-3891")
+            Person.create
           end
 
           let!(:post) do
@@ -895,7 +936,7 @@ describe Mongoid::Relations::Referenced::Many do
       context "when the parent has been persisted" do
 
         let!(:person) do
-          Person.create(:ssn => "123-45-9988")
+          Person.create
         end
 
         context "when the children are persisted" do
@@ -1079,7 +1120,7 @@ describe Mongoid::Relations::Referenced::Many do
         end
 
         let!(:person) do
-          Person.create(:ssn => "345-11-1124") do |doc|
+          Person.create do |doc|
             doc.posts.concat([ post ])
           end
         end
@@ -1108,7 +1149,7 @@ describe Mongoid::Relations::Referenced::Many do
       context "when the parent is not a new record" do
 
         let(:person) do
-          Person.create(:ssn => "554-44-3891")
+          Person.create
         end
 
         let(:post) do
@@ -1335,7 +1376,7 @@ describe Mongoid::Relations::Referenced::Many do
     context "when providing scoped mass assignment" do
 
       let(:person) do
-        Person.create(:ssn => "213-12-2121")
+        Person.create
       end
 
       let(:drug) do
@@ -1370,10 +1411,47 @@ describe Mongoid::Relations::Referenced::Many do
         end
       end
 
+      context "when safely creating the document" do
+
+        context "when the operation is successful" do
+
+          let(:person) do
+            Person.create
+          end
+
+          let!(:post) do
+            person.posts.safely.create(:text => "Testing")
+          end
+
+          it "creates the document" do
+            person.posts.should eq([ post ])
+          end
+        end
+
+        context "when the operation fails" do
+
+          let(:person) do
+            Person.create
+          end
+
+          let!(:existing) do
+            Post.create
+          end
+
+          it "raises an error" do
+            expect {
+              person.posts.safely.create do |doc|
+                doc._id = existing.id
+              end
+            }.to raise_error(Mongo::OperationFailure)
+          end
+        end
+      end
+
       context "when the parent is not a new record" do
 
         let(:person) do
-          Person.create(:ssn => "554-44-3891")
+          Person.create
         end
 
         let!(:post) do
@@ -1463,7 +1541,7 @@ describe Mongoid::Relations::Referenced::Many do
     context "when providing mass scoping options" do
 
       let(:person) do
-        Person.create(:ssn => "213-12-2121")
+        Person.create
       end
 
       let(:drug) do
@@ -1501,7 +1579,7 @@ describe Mongoid::Relations::Referenced::Many do
       context "when the parent is not a new record" do
 
         let(:person) do
-          Person.create(:ssn => "554-44-3891")
+          Person.create
         end
 
         let!(:post) do
@@ -1598,10 +1676,53 @@ describe Mongoid::Relations::Referenced::Many do
     end
   end
 
+  describe ".criteria" do
+
+    let(:id) do
+      BSON::ObjectId.new
+    end
+
+    context "when the relation is polymorphic" do
+
+      let(:metadata) do
+        Movie.relations["ratings"]
+      end
+
+      let(:criteria) do
+        described_class.criteria(metadata, id, Movie)
+      end
+
+      it "includes the type in the criteria" do
+        criteria.selector.should eq(
+          { 
+            "ratable_id"    => id, 
+            "ratable_type"  => "Movie",
+            "ratable_field" => { "$in" => [ :ratings, nil ] }
+          }
+        )
+      end
+    end
+
+    context "when the relation is not polymorphic" do
+
+      let(:metadata) do
+        Person.relations["posts"]
+      end
+
+      let(:criteria) do
+        described_class.criteria(metadata, id, Person)
+      end
+
+      it "does not include the type in the criteria" do
+        criteria.selector.should eq({ "person_id" => id })
+      end
+    end
+  end
+
   describe "#delete" do
 
     let!(:person) do
-      Person.create(:ssn => "123-11-1111")
+      Person.create
     end
 
     context "when the document is found" do
@@ -1734,7 +1855,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when conditions are provided" do
 
           let(:person) do
-            Person.create(:ssn => "123-32-2321")
+            Person.create
           end
 
           before do
@@ -1760,7 +1881,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when conditions are not provided" do
 
           let(:person) do
-            Person.create(:ssn => "123-32-2321")
+            Person.create
           end
 
           before do
@@ -1854,7 +1975,7 @@ describe Mongoid::Relations::Referenced::Many do
     context "when the relation is not polymorphic" do
 
       let!(:person) do
-        Person.create(:ssn => "243-12-5243")
+        Person.create
       end
 
       let!(:post) do
@@ -1932,7 +2053,7 @@ describe Mongoid::Relations::Referenced::Many do
   describe "#exists?" do
 
     let!(:person) do
-      Person.create(:ssn => "292-19-4232")
+      Person.create
     end
 
     context "when documents exist in the database" do
@@ -1973,7 +2094,7 @@ describe Mongoid::Relations::Referenced::Many do
       context "when the document is in the map" do
 
         let(:person) do
-          Person.create(:ssn => "123-11-1111")
+          Person.create
         end
 
         before do
@@ -2434,7 +2555,7 @@ describe Mongoid::Relations::Referenced::Many do
   describe "#max" do
 
     let(:person) do
-      Person.create(:ssn => "123-45-6789")
+      Person.create
     end
 
     let(:post_one) do
@@ -2461,7 +2582,7 @@ describe Mongoid::Relations::Referenced::Many do
   describe "#method_missing" do
 
     let!(:person) do
-      Person.create(:ssn => "333-33-3333")
+      Person.create
     end
 
     let!(:post_one) do
@@ -2519,7 +2640,7 @@ describe Mongoid::Relations::Referenced::Many do
   describe "#min" do
 
     let(:person) do
-      Person.create(:ssn => "123-45-6789")
+      Person.create
     end
 
     let(:post_one) do
@@ -2548,7 +2669,7 @@ describe Mongoid::Relations::Referenced::Many do
     context "when the inverse has not been loaded" do
 
       let(:person) do
-        Person.create(:ssn => "999-99-9988")
+        Person.create
       end
 
       let!(:post_one) do
@@ -2585,7 +2706,7 @@ describe Mongoid::Relations::Referenced::Many do
     context "when the relation is not polymorphic" do
 
       let(:person) do
-        Person.create(:ssn => "999-99-9999")
+        Person.create
       end
 
       let!(:post_one) do
@@ -2700,7 +2821,7 @@ describe Mongoid::Relations::Referenced::Many do
   describe "#sum" do
 
     let(:person) do
-      Person.create(:ssn => "123-45-6789")
+      Person.create
     end
 
     let(:post_one) do
@@ -2781,7 +2902,7 @@ describe Mongoid::Relations::Referenced::Many do
     context "when the relation has no default scope" do
 
       let!(:person) do
-        Person.create(:ssn => "123-11-1111")
+        Person.create
       end
 
       let!(:post_one) do
@@ -2848,7 +2969,7 @@ describe Mongoid::Relations::Referenced::Many do
   context "when the association has an order defined" do
 
     let(:person) do
-      Person.create(:ssn => "999-99-9999")
+      Person.create
     end
 
     let(:post_one) do
@@ -2884,7 +3005,7 @@ describe Mongoid::Relations::Referenced::Many do
   context "when reloading the relation" do
 
     let!(:person) do
-      Person.create(:ssn => "243-41-9678")
+      Person.create
     end
 
     let!(:post_one) do
@@ -2939,7 +3060,9 @@ describe Mongoid::Relations::Referenced::Many do
   context "when the parent is using integer ids" do
 
     let(:jar) do
-      Jar.create(:_id => 1)
+      Jar.create do |doc|
+        doc._id = 1
+      end
     end
 
     it "allows creation of the document" do

@@ -93,7 +93,7 @@ describe Mongoid::Relations::Embedded::Many do
       context "when the parent is not a new record" do
 
         let(:person) do
-          Person.create(:ssn => "234-44-4432")
+          Person.create
         end
 
         let(:address) do
@@ -112,7 +112,7 @@ describe Mongoid::Relations::Embedded::Many do
       context "when appending more than one document at once" do
 
         let(:person) do
-          Person.create(:ssn => "234-44-4432")
+          Person.create
         end
 
         let(:address_one) do
@@ -255,7 +255,7 @@ describe Mongoid::Relations::Embedded::Many do
     context "when the parent is not a new record" do
 
       let(:person) do
-        Person.create(:ssn => "999-98-9988")
+        Person.create
       end
 
       let(:address) do
@@ -276,7 +276,7 @@ describe Mongoid::Relations::Embedded::Many do
       context "when setting via an overridden method from the parent" do
 
         let!(:person) do
-          Person.create(:ssn => "231-12-1111")
+          Person.create
         end
 
         let!(:address) do
@@ -309,13 +309,87 @@ describe Mongoid::Relations::Embedded::Many do
         it "does not save the target" do
           address.should_not be_persisted
         end
+
+        context "when setting the relation multiple times" do
+
+          let(:address_two) do
+            Address.new(:street => "kudamm")
+          end
+
+          before do
+            person.addresses = [ address_two ]
+            person.save
+          end
+
+          it "sets the new documents" do
+            person.addresses.should eq([ address_two ])
+          end
+
+          it "persits only the new documents" do
+            person.reload.addresses.should eq([ address_two ])
+          end
+        end
+      end
+    end
+
+    context "when setting for inherited docs" do
+
+      context "when the parent collection is already accessed" do
+
+        before do
+          Person.collection
+        end
+
+        context "when setting via the subclass" do
+
+          let(:doctor) do
+            Doctor.new
+          end
+
+          let(:address_one) do
+            Address.new(:street => "tauentzien")
+          end
+
+          before do
+            doctor.addresses = [ address_one ]
+            doctor.save
+          end
+
+          it "sets the documents" do
+            doctor.addresses.should eq([ address_one ])
+          end
+
+          it "persists the document" do
+            doctor.reload.addresses.should eq([ address_one ])
+          end
+
+          context "when setting the relation multiple times" do
+
+            let(:address_two) do
+              Address.new(:street => "kudamm")
+            end
+
+            before do
+              doctor.addresses = [ address_two ]
+              doctor.save
+            end
+
+            it "sets the new documents" do
+              doctor.addresses.should eq([ address_two ])
+            end
+
+            it "persits only the new documents" do
+              doctor.reload.addresses.should eq([ address_two ])
+            end
+          end
+        end
       end
     end
 
     context "when replacing an existing relation" do
 
       let(:person) do
-        Person.create(:ssn => "999-98-9988", :addresses => [
+        Person.create(:addresses => [
           Address.new(:street => "1st St"),
           Address.new(:street => "2nd St")
         ])
@@ -405,7 +479,7 @@ describe Mongoid::Relations::Embedded::Many do
     context "when setting the entire tree via a hash" do
 
       let(:person) do
-        Person.create(:ssn => "456-11-1111")
+        Person.create
       end
 
       let!(:address_one) do
@@ -553,7 +627,7 @@ describe Mongoid::Relations::Embedded::Many do
       context "when the parent is persisted" do
 
         let(:person) do
-          Person.create(:ssn => "437-11-1112")
+          Person.create
         end
 
         let(:address) do
@@ -616,7 +690,7 @@ describe Mongoid::Relations::Embedded::Many do
       context "when setting on a reload" do
 
         let(:person) do
-          Person.create(:ssn => "437-11-1112")
+          Person.create
         end
 
         let(:address) do
@@ -716,7 +790,7 @@ describe Mongoid::Relations::Embedded::Many do
   describe "#as_document" do
 
     let!(:person) do
-      Person.create(:ssn => "243-78-2437")
+      Person.create
     end
 
     context "when the relation has no default scope" do
@@ -787,7 +861,7 @@ describe Mongoid::Relations::Embedded::Many do
   describe "#avg" do
 
     let(:person) do
-      Person.new(:ssn => "123-45-6789")
+      Person.new
     end
 
     let(:address_one) do
@@ -928,7 +1002,7 @@ describe Mongoid::Relations::Embedded::Many do
       context "when providing nested attributes" do
 
         let(:person) do
-          Person.create(:ssn => "555-11-2222")
+          Person.create
         end
 
         let(:address) do
@@ -990,7 +1064,7 @@ describe Mongoid::Relations::Embedded::Many do
     context "when the parent has been persisted" do
 
       let(:person) do
-        Person.create(:ssn => "123-45-9999")
+        Person.create
       end
 
       context "when the children are persisted" do
@@ -1112,7 +1186,7 @@ describe Mongoid::Relations::Embedded::Many do
     context "when the parent is not a new record" do
 
       let(:person) do
-        Person.create(:ssn => "234-44-4432")
+        Person.create
       end
 
       let(:address) do
@@ -1131,7 +1205,7 @@ describe Mongoid::Relations::Embedded::Many do
     context "when appending more than one document at once" do
 
       let(:person) do
-        Person.create(:ssn => "234-44-4432")
+        Person.create
       end
 
       let(:address_one) do
@@ -1263,7 +1337,7 @@ describe Mongoid::Relations::Embedded::Many do
     context "when the relation is not cyclic" do
 
       let(:person) do
-        Person.create(:ssn => "333-22-1234")
+        Person.create
       end
 
       let!(:address) do
@@ -1462,7 +1536,7 @@ describe Mongoid::Relations::Embedded::Many do
     describe "##{method}" do
 
       let(:person) do
-        Person.create(:ssn => "112-33-4432")
+        Person.create
       end
 
       context "when the documents are new" do
@@ -1663,7 +1737,7 @@ describe Mongoid::Relations::Embedded::Many do
   describe "#exists?" do
 
     let!(:person) do
-      Person.create(:ssn => "292-19-4239")
+      Person.create
     end
 
     context "when documents exist in the database" do
@@ -1920,7 +1994,7 @@ describe Mongoid::Relations::Embedded::Many do
   describe "#max" do
 
     let(:person) do
-      Person.new(:ssn => "123-45-6789")
+      Person.new
     end
 
     let(:address_one) do
@@ -1947,7 +2021,7 @@ describe Mongoid::Relations::Embedded::Many do
   describe "#method_missing" do
 
     let!(:person) do
-      Person.create(:ssn => "333-33-3333")
+      Person.create
     end
 
     let!(:address_one) do
@@ -2039,7 +2113,7 @@ describe Mongoid::Relations::Embedded::Many do
   describe "#min" do
 
     let(:person) do
-      Person.new(:ssn => "123-45-6789")
+      Person.new
     end
 
     let(:address_one) do
@@ -2072,6 +2146,106 @@ describe Mongoid::Relations::Embedded::Many do
     it "returns the many nested builder class" do
       described_class.nested_builder(metadata, {}, {}).should
         be_a(Mongoid::Relations::Builders::NestedAttributes::Many)
+    end
+  end
+
+  describe "#pop" do
+
+    let(:person) do
+      Person.create
+    end
+
+    context "when no argument is provided" do
+
+      let!(:address_one) do
+        person.addresses.create(:street => "sonnenallee")
+      end
+
+      let!(:address_two) do
+        person.addresses.create(:street => "hermannstr")
+      end
+
+      let!(:popped) do
+        person.addresses.pop
+      end
+
+      it "returns the popped document" do
+        popped.should eq(address_two)
+      end
+
+      it "removes the document from the relation" do
+        person.addresses.should eq([ address_one ])
+      end
+
+      it "persists the pop" do
+        person.reload.addresses.should eq([ address_one ])
+      end
+    end
+
+    context "when an integer is provided" do
+
+      let!(:address_one) do
+        person.addresses.create(:street => "sonnenallee")
+      end
+
+      let!(:address_two) do
+        person.addresses.create(:street => "hermannstr")
+      end
+
+      context "when the number is not larger than the relation" do
+
+        let!(:popped) do
+          person.addresses.pop(2)
+        end
+
+        it "returns the popped documents" do
+          popped.should eq([ address_one, address_two ])
+        end
+
+        it "removes the document from the relation" do
+          person.addresses.should be_empty
+        end
+
+        it "persists the pop" do
+          person.reload.addresses.should be_empty
+        end
+      end
+
+      context "when the number is larger than the relation" do
+
+        let!(:popped) do
+          person.addresses.pop(4)
+        end
+
+        it "returns the popped documents" do
+          popped.should eq([ address_one, address_two ])
+        end
+
+        it "removes the document from the relation" do
+          person.addresses.should be_empty
+        end
+
+        it "persists the pop" do
+          person.reload.addresses.should be_empty
+        end
+      end
+    end
+
+    context "when the relation is empty" do
+
+      context "when providing no number" do
+
+        it "returns nil" do
+          person.addresses.pop.should be_nil
+        end
+      end
+
+      context "when providing a number" do
+
+        it "returns nil" do
+          person.addresses.pop(2).should be_nil
+        end
+      end
     end
   end
 
@@ -2161,7 +2335,7 @@ describe Mongoid::Relations::Embedded::Many do
   describe "#sum" do
 
     let(:person) do
-      Person.new(:ssn => "123-45-6789")
+      Person.new
     end
 
     let(:address_one) do
@@ -2229,7 +2403,7 @@ describe Mongoid::Relations::Embedded::Many do
     context "when updating the bottom level" do
 
       let!(:person) do
-        Person.create(:ssn => "234-23-2345")
+        Person.create
       end
 
       let!(:address) do
@@ -2412,6 +2586,44 @@ describe Mongoid::Relations::Embedded::Many do
     end
   end
 
+  context "when deeply nesting documents" do
+
+    context "when all documents are new" do
+
+      let(:person) do
+        Person.new
+      end
+
+      let(:address) do
+        Address.new
+      end
+
+      let(:location) do
+        Location.new
+      end
+
+      before do
+        address.locations << location
+        person.addresses << address
+      end
+
+      context "when saving the root" do
+
+        before do
+          person.save
+        end
+
+        it "persists the first level document" do
+          person.reload.addresses.first.should eq(address)
+        end
+
+        it "persists the second level document" do
+          person.reload.addresses[0].locations.should eq([ location ])
+        end
+      end
+    end
+  end
+
   context "when attempting nil pushes and substitutes" do
 
     let(:home_phone) do
@@ -2571,7 +2783,7 @@ describe Mongoid::Relations::Embedded::Many do
   context "when updating the parent with all attributes" do
 
     let!(:person) do
-      Person.create(:ssn => "333-33-2111")
+      Person.create
     end
 
     let!(:address) do
@@ -2660,11 +2872,11 @@ describe Mongoid::Relations::Embedded::Many do
   context "when moving an embedded document from one parent to another" do
 
     let!(:person_one) do
-      Person.create(:ssn => "455-11-1234")
+      Person.create
     end
 
     let!(:person_two) do
-      Person.create(:ssn => "455-12-1234")
+      Person.create
     end
 
     let!(:address) do
@@ -2703,7 +2915,7 @@ describe Mongoid::Relations::Embedded::Many do
   context "when the relation has a default scope" do
 
     let!(:person) do
-      Person.create(:ssn => "243-11-1111")
+      Person.create
     end
 
     context "when the default scope is a sort" do
@@ -2773,7 +2985,7 @@ describe Mongoid::Relations::Embedded::Many do
   context "when indexing the documents" do
 
     let!(:person) do
-      Person.create(:ssn => "456-33-3333")
+      Person.create
     end
 
     context "when the documents have a limiting default scope" do
@@ -2822,7 +3034,7 @@ describe Mongoid::Relations::Embedded::Many do
   context "when the embedded document has an array field" do
 
     let!(:person) do
-      Person.create(:ssn => "673-11-2322")
+      Person.create
     end
 
     let!(:video) do

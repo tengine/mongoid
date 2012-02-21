@@ -46,7 +46,7 @@ describe Mongoid::Criterion::Inclusion do
     context "when providing string ids" do
 
       let!(:person) do
-        Person.create(:ssn => "444-44-4444")
+        Person.create
       end
 
       let(:from_db) do
@@ -183,7 +183,7 @@ describe Mongoid::Criterion::Inclusion do
     context "when chaining after a where" do
 
       let!(:person) do
-        Person.create(:ssn => "423-11-1111", :title => "sir")
+        Person.create(:title => "sir")
       end
 
       let(:criteria) do
@@ -242,7 +242,7 @@ describe Mongoid::Criterion::Inclusion do
     context "when providing string ids" do
 
       let!(:person) do
-        Person.create(:ssn => "444-44-4444")
+        Person.create
       end
 
       let(:from_db) do
@@ -258,15 +258,15 @@ describe Mongoid::Criterion::Inclusion do
   describe "#any_of" do
 
     let!(:person_one) do
-      Person.create(:title => "Sir", :age => 5, :ssn => "098-76-5432")
+      Person.create(:title => "Sir", :age => 5)
     end
 
     let!(:person_two) do
-      Person.create(:title => "Sir", :age => 7, :ssn => "098-76-5433")
+      Person.create(:title => "Sir", :age => 7)
     end
 
     let!(:person_three) do
-      Person.create(:title => "Madam", :age => 1, :ssn => "098-76-5434")
+      Person.create(:title => "Madam", :age => 1)
     end
 
     context "when provided a hash" do
@@ -354,11 +354,11 @@ describe Mongoid::Criterion::Inclusion do
   describe "#all_of" do
 
     let!(:person_one) do
-      Person.safely.create!(:ssn => "354-12-1221")
+      Person.safely.create!
     end
 
     let!(:person_two) do
-      Person.safely.create!(:ssn => "354-12-1222")
+      Person.safely.create!
     end
 
     context "when providing object ids" do
@@ -517,15 +517,21 @@ describe Mongoid::Criterion::Inclusion do
       context "when ids are not object ids" do
 
         let!(:jar_one) do
-          Jar.create(:_id => 114869287646134350)
+          Jar.create do |doc|
+            doc._id = 114869287646134350
+          end
         end
 
         let!(:jar_two) do
-          Jar.create(:_id => 114869287646134388)
+          Jar.create do |doc|
+            doc._id = 114869287646134388
+          end
         end
 
         let!(:jar_three) do
-          Jar.create(:_id => 114869287646134398)
+          Jar.create do |doc|
+            doc._id = 114869287646134398
+          end
         end
 
         context "when the documents are found" do
@@ -633,7 +639,130 @@ describe Mongoid::Criterion::Inclusion do
     end
 
     let!(:person) do
-      Person.create(:ssn => "123-12-1211")
+      Person.create
+    end
+
+    context "when providing inclusions to the default scope" do
+
+      before do
+        Person.default_scope(Person.includes(:posts))
+      end
+
+      after do
+        Person.default_scoping = nil
+      end
+
+      let!(:post_one) do
+        person.posts.create(:title => "one")
+      end
+
+      let!(:post_two) do
+        person.posts.create(:title => "two")
+      end
+
+      context "when the criteria has no options" do
+
+        before do
+          Mongoid::IdentityMap.clear
+        end
+
+        let!(:criteria) do
+          Person.all.entries
+        end
+
+        it "returns the correct documents" do
+          criteria.should eq([ person ])
+        end
+
+        it "inserts the first document into the identity map" do
+          Mongoid::IdentityMap[Post.collection_name][post_one.id].should eq(post_one)
+        end
+
+        it "inserts the second document into the identity map" do
+          Mongoid::IdentityMap[Post.collection_name][post_two.id].should eq(post_two)
+        end
+      end
+
+      context "when calling first on the criteria" do
+
+        before do
+          Mongoid::IdentityMap.clear
+        end
+
+        let!(:from_db) do
+          Person.first
+        end
+
+        it "returns the correct documents" do
+          from_db.should eq(person)
+        end
+
+        it "inserts the first document into the identity map" do
+          Mongoid::IdentityMap[Post.collection_name][post_one.id].should eq(post_one)
+        end
+
+        it "inserts the second document into the identity map" do
+          Mongoid::IdentityMap[Post.collection_name][post_two.id].should eq(post_two)
+        end
+      end
+
+      context "when calling last on the criteria" do
+
+        before do
+          Mongoid::IdentityMap.clear
+        end
+
+        let!(:from_db) do
+          Person.last
+        end
+
+        it "returns the correct documents" do
+          from_db.should eq(person)
+        end
+
+        it "inserts the first document into the identity map" do
+          Mongoid::IdentityMap[Post.collection_name][post_one.id].should eq(post_one)
+        end
+
+        it "inserts the second document into the identity map" do
+          Mongoid::IdentityMap[Post.collection_name][post_two.id].should eq(post_two)
+        end
+      end
+
+      context "when the criteria has limiting options" do
+
+        let!(:person_two) do
+          Person.create
+        end
+
+        let!(:post_three) do
+          person_two.posts.create(:title => "three")
+        end
+
+        before do
+          Mongoid::IdentityMap.clear
+        end
+
+        let!(:criteria) do
+          Person.asc(:_id).limit(1).entries
+        end
+
+        it "returns the correct documents" do
+          criteria.should eq([ person ])
+        end
+
+        it "inserts the first document into the identity map" do
+          Mongoid::IdentityMap[Post.collection_name][post_one.id].should eq(post_one)
+        end
+
+        it "inserts the second document into the identity map" do
+          Mongoid::IdentityMap[Post.collection_name][post_two.id].should eq(post_two)
+        end
+
+        it "does not insert the third post into the identity map" do
+          Mongoid::IdentityMap[Post.collection_name][post_three.id].should be_nil
+        end
+      end
     end
 
     context "when including a has and belongs to many" do
@@ -730,7 +859,7 @@ describe Mongoid::Criterion::Inclusion do
       context "when the criteria has limiting options" do
 
         let!(:person_two) do
-          Person.create(:ssn => "123-43-2123")
+          Person.create
         end
 
         let!(:preference_three) do
@@ -849,7 +978,7 @@ describe Mongoid::Criterion::Inclusion do
       context "when the criteria has limiting options" do
 
         let!(:person_two) do
-          Person.create(:ssn => "123-43-2123")
+          Person.create
         end
 
         let!(:post_three) do
@@ -933,7 +1062,7 @@ describe Mongoid::Criterion::Inclusion do
       context "when the criteria has limiting options" do
 
         let!(:person_two) do
-          Person.create(:ssn => "123-43-2125")
+          Person.create
         end
 
         let!(:game_three) do
@@ -965,7 +1094,7 @@ describe Mongoid::Criterion::Inclusion do
     context "when including a belongs to" do
 
       let(:person_two) do
-        Person.create(:ssn => "243-11-0978")
+        Person.create
       end
 
       let!(:game_one) do
@@ -1128,11 +1257,11 @@ describe Mongoid::Criterion::Inclusion do
     context "when passing in a range" do
 
       let!(:baby) do
-        Person.create(:ssn => "123-12-1212", :dob => Date.new(2011, 1, 1))
+        Person.create(:dob => Date.new(2011, 1, 1))
       end
 
       let!(:adult) do
-        Person.create(:ssn => "124-12-1212", :dob => Date.new(1980, 1, 1))
+        Person.create(:dob => Date.new(1980, 1, 1))
       end
 
       context "when the range matches documents" do
@@ -1269,12 +1398,12 @@ describe Mongoid::Criterion::Inclusion do
         Person.where(:age => "33").should eq([ person ])
       end
 
-      it "typecasts datetimes" do
-        Person.where(:lunch_time => lunch_time.to_s).should eq([ person ])
-      end
-
       it "typecasts dates" do
         Person.where({:dob => dob.to_s}).should eq([ person ])
+      end
+
+      it "typecasts datetimes" do
+        Person.where({:lunch_time => lunch_time.to_f}).should eq([ person ])
       end
 
       it "typecasts times with zones" do

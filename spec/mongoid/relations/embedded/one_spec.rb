@@ -66,7 +66,7 @@ describe Mongoid::Relations::Embedded::One do
       context "when the parent is not a new record" do
 
         let(:person) do
-          Person.create(:ssn => "437-11-1112")
+          Person.create
         end
 
         let(:name) do
@@ -225,7 +225,7 @@ describe Mongoid::Relations::Embedded::One do
       context "when the parent is persisted" do
 
         let(:person) do
-          Person.create(:ssn => "437-11-1112")
+          Person.create
         end
 
         let(:name) do
@@ -484,7 +484,7 @@ describe Mongoid::Relations::Embedded::One do
       context "when the parent is not a new record" do
 
         let(:person) do
-          Person.create(:ssn => "437-11-1112")
+          Person.create
         end
 
         let!(:name) do
@@ -675,7 +675,7 @@ describe Mongoid::Relations::Embedded::One do
       context "when the parent is not a new record" do
 
         let(:person) do
-          Person.create(:ssn => "437-11-1112")
+          Person.create
         end
 
         let!(:name) do
@@ -771,7 +771,7 @@ describe Mongoid::Relations::Embedded::One do
   context "when the embedded document has an array field" do
 
     let!(:person) do
-      Person.create(:ssn => "673-11-2321")
+      Person.create
     end
 
     let!(:name) do
@@ -799,6 +799,46 @@ describe Mongoid::Relations::Embedded::One do
 
       it "persists the array" do
         Person.find(person.id).name.aliases.should eq([ "Syd", "Sydney" ])
+      end
+    end
+  end
+
+  context "when embedding a many under a one" do
+
+    let!(:person) do
+      Person.create
+    end
+
+    before do
+      person.create_name
+    end
+
+    context "when the documents are reloaded from the database" do
+
+      let(:from_db) do
+        Person.first
+      end
+
+      context "when adding a new many" do
+
+        let(:name) do
+          from_db.name
+        end
+
+        let!(:translation) do
+          name.translations.new
+        end
+
+        context "when saving the root" do
+
+          before do
+            from_db.save
+          end
+
+          it "persists the new document on the first save" do
+            from_db.reload.name.translations.should_not be_empty
+          end
+        end
       end
     end
   end

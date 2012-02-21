@@ -35,7 +35,7 @@ module Mongoid #:nodoc:
         # @since 2.1.0
         def serialize(object)
           return nil if object.blank?
-          numeric(object) rescue object
+          numeric(object) rescue 0
         end
 
         private
@@ -51,7 +51,7 @@ module Mongoid #:nodoc:
         #
         # @since 2.3.0
         def numeric(object)
-          object.to_s =~ /(^[-+]?[0-9]+$)|(\.0+)$/ ? object.to_i : Float(object)
+          object.to_s =~ /(^[-+]?[0-9]+$)|(\.0+)$/ ? object.to_i : Float(object).to_i
         end
       end
     end

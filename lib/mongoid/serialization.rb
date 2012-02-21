@@ -34,15 +34,24 @@ module Mongoid # :nodoc:
       except |= ['_type'] unless Mongoid.include_type_for_serialization
 
       field_names = fields.keys.map { |field| field.to_s }
-      attribute_names = (attributes.keys + field_names).sort
+      attribute_names = (as_document.keys + field_names).sort
       if only.any?
         attribute_names &= only
       elsif except.any?
         attribute_names -= except
       end
 
-      method_names = Array.wrap(options[:methods]).map { |n| n.to_s if respond_to?(n.to_s) }.compact
-      Hash[(attribute_names + method_names).map { |n| [n, send(n)] }].tap do |attrs|
+      method_names = Array.wrap(options[:methods]).map do |name|
+        name.to_s if respond_to?(name)
+      end.compact
+
+      {}.tap do |attrs|
+        attribute_names.each do |name|
+          attrs[name] = attributes[name]
+        end
+        method_names.each do |name|
+          attrs[name] = send(name)
+        end
         serialize_relations(attrs, options) if options[:include]
       end
     end

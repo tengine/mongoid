@@ -2,6 +2,16 @@ require "spec_helper"
 
 describe Mongoid::Relations::Synchronization do
 
+  before(:all) do
+    Mongoid.raise_not_found_error = true
+    Person.synced(Person.relations["preferences"])
+  end
+
+  after(:all) do
+    Person.reset_callbacks(:save)
+    Person.reset_callbacks(:destroy)
+  end
+
   describe ".update_inverse_keys" do
 
     let(:agent) do
@@ -93,7 +103,7 @@ describe Mongoid::Relations::Synchronization do
   context "when first setting by the relation itself" do
 
     let!(:person) do
-      Person.create(:ssn => "342-12-2222")
+      Person.create
     end
 
     let!(:one) do
@@ -132,7 +142,7 @@ describe Mongoid::Relations::Synchronization do
   context "when setting new ids" do
 
     let!(:person) do
-      Person.create(:ssn => "342-12-2222")
+      Person.create
     end
 
     let!(:one) do
@@ -193,10 +203,7 @@ describe Mongoid::Relations::Synchronization do
     end
 
     let!(:person) do
-      Person.create(
-        :ssn => "342-12-2222",
-        :preference_ids => [ one.id, two.id ]
-      )
+      Person.create(:preference_ids => [ one.id, two.id ])
     end
 
     let!(:three) do
@@ -261,10 +268,7 @@ describe Mongoid::Relations::Synchronization do
     end
 
     let!(:person) do
-      Person.create(
-        :ssn => "342-12-2222",
-        :preference_ids => [ one.id, two.id ]
-      )
+      Person.create(:preference_ids => [ one.id, two.id ])
     end
 
     before do
@@ -317,10 +321,7 @@ describe Mongoid::Relations::Synchronization do
     end
 
     let!(:person) do
-      Person.create(
-        :ssn => "342-12-2222",
-        :preference_ids => [ one.id, two.id ]
-      )
+      Person.create(:preference_ids => [ one.id, two.id ])
     end
 
     before do
@@ -373,10 +374,7 @@ describe Mongoid::Relations::Synchronization do
     end
 
     let!(:person) do
-      Person.create(
-        :ssn => "342-12-2222",
-        :preferences => [ one, two ]
-      )
+      Person.create(:preferences => [ one, two ])
     end
 
     context "when destroying the parent" do

@@ -3,19 +3,231 @@
 For instructions on upgrading to newer versions, visit
 [mongoid.org](http://mongoid.org/docs/upgrading.html).
 
-## 3.0.0 \[ In Development \] \[ Branch: master \]
+## 3.0.0 (branch: master)
 
 ### New Features
+
+* \#1726 `Mongoid.load!` now accepts an optional second argument for the
+  environment to load. This takes precedence over any environment variable
+  that is set if provided.
+
+        Mongoid.load!("/path/to/mongoid.yml", :development)
+
+* \#1724 Mongoid now supports regex fields.
+
+        class Rule
+          include Mongoid::Document
+          field :pattern, type: Regexp, default: /[^abc]/
+        end
+
+* \#1714/\#1706 Added better logging on index creation. (Hans Hasselberg)
+
+    When an index is present on a root document model:
+
+        Creating indexes on: Model for: name, dob.
+
+    When an index is defined on an embedded model:
+
+        Index ignored on: Address, please define in the root model.
+
+    When no index is defined, nothing is logged, and if a bad index is
+    defined an error is raised.
+
+* \#1710 For cases when you don't want Mongoid to auto-protect the id
+  and type attributes, you can set a configuration option to turn this
+  off.
+
+        Mongoid.protect_sensitive_fields = false
+
+* \#1685 Belongs to relations now have build_ and create_ methods.
+
+        class Comment
+          include Mongoid::Document
+          belongs_to :user
+        end
+
+        comment = Comment.new
+        comment.build_user # Build a new user object
+        comment.create_user # Create a new user object
+
+* \#1684 Raise a `Mongoid::Errors::InverseNotFound` when attempting to
+  set a child on a relation without the proper inverse_of definitions
+  due to Mongoid not being able to determine it.
+
+        class Lush
+          include Mongoid::Document
+          embeds_one :whiskey, class_name: "Drink"
+        end
+
+        class Drink
+          include Mongoid::Document
+          embedded_in :alcoholic, class_name: "Lush"
+        end
+
+        lush = Lush.new
+        lush.whiskey = Drink.new # raises an InverseNotFound error.
+
+* \#1680 Polymorphic relations now use `*_type` keys in lookup queries.
+
+        class User
+          include Mongoid::Document
+          has_many :comments, as: :commentable
+        end
+
+        class Comment
+          include Mongoid::Document
+          belongs_to :commentable, polymorphic: true
+        end
+
+        user = User.find(id)
+        user.comments # Uses user.id and type "User" in the query.
+
+* \#1677 Support for parent separable polymorphic relations to the same
+  parent class is now available. This only works if set from the parent
+  side in order to know which relation the children belong to.
+  (Douwe Maan)
+
+        class Face
+          include Mongoid::Document
+          has_one :left_eye, class_name: "Eye", as: :visible
+          has_one :right_eye, class_name: "Eye", as: :visible
+        end
+
+        class Eye
+          include Mongoid::Document
+          belongs_to :visible, polymorphic: true
+        end
+
+        face = Face.new
+        right_eye = Eye.new
+        left_eye = Eye.new
+        face.right_eye = right_eye
+        face.left_eye = left_eye
+        right_eye.visible = face # Will raise an error.
+
+* \#1650 Objects that respond to \#to_criteria can now be merged into
+  existing criteria objects.
+
+        class Filter
+          def to_criteria
+            # return a Criteria object.
+          end
+        end
+
+        criteria = Person.where(title: "Sir")
+        criteria.merge(filter)
+
+* \#1635 All exceptions now provide more comprehensive errors, including
+  the problem that occured, a detail summary of why it happened, and
+  potential resolutions. Example:
+
+        (Mongoid::Errors::DocumentNotFound)
+        Problem:
+          Document not found for class Town with
+          id(s) [BSON::ObjectId('4f35781b8ad54812e1000001')].
+        Summary:
+          When calling Town.find with an id or array of ids,
+          each parameter must match a document in the database
+          or this error will be raised.
+        Resolution:
+          Search for an id that is in the database or set the
+          Mongoid.raise_not_found_error configuration option to
+          false, which will cause a nil to be returned instead
+          of raising this error.
 
 * \#1616 `Model.find_by` added which takes a hash of arugments to search
   for in the database. If no single document is returned a DocumentNotFound
   error is raised. (Piotr Jakubowski)
 
+        Band.find_by(name: "Depeche Mode")
+
+* \#1477 Mongoid now automatically protects the id and type attributes
+  from mass assignment. You can override this (not recommended) by redefining
+  them as accessible.
+
+        class Band
+          include Mongoid::Document
+          attr_accessible :id, :_id, :_type
+        end
+
+* \#1459 The identity map can be disabled now for specific code execution
+  by passing options to the unit of work.
+
+        Mongoid.unit_of_work(disable: :all) do
+          # Disables the identity map on all threads for the block.
+        end
+
+        Mongoid.unit_of_work(disable: :current) do
+          # Disables the identity map on the current thread for the block.
+        end
+
+        Mongoid.unit_of_work do
+          # Business as usual.
+        end
+
+* \#1355 Associations now can have safety options provided to them on single
+  document persistence operations.
+
+        band.albums.safely.push(album)
+        band.albums.safely.create(name: "Smiths")
+
+        album.safely.create_producer(name: "Flood")
+
 * \#1348 Eager loading is now supported on many-to-many relations.
+
+* \#1292 Remove attribute now unsets the attribute when the document is
+  saved instead of setting to nil.
+
+        band = Band.find(id)
+        band.remove_attribute(:label) # Uses $unset when the document is saved.
+
+* \#1212 Embedded documents can now be popped off a relation with persistence.
+
+        band.albums.pop # Pop 1 document and persist the removal.
+        band.albums.pop(3) # Pop 3 documents and persist the removal.
+
+* \#1081 Mongoid indexes both id and type as a compound index when providing
+  `index: true` to a polymorphic belongs_to.
+
+        class Comment
+          include Mongoid::Document
+
+          # Indexes commentable_id and commentable_type as a compound index.
+          belongs_to :commentable, polymorphic: true, index: true
+        end
 
 * \#1053 Raise a `Mongoid::Errors::UnknownAttribute` instead of no method
   when attempting to set a field that is not defined and allow dynamic
   fields is false. (Cyril Mougel)
+
+        Mongoid.allow_dynamic_fields = false
+
+        class Person
+          include Mongoid::Document
+          field :title, type: String
+        end
+
+        Person.new.age = 50 # raises the UnknownAttribute error.
+
+* \#772 Fields can now be flagged as readonly, which will only let their
+  values be set when the document is new.
+
+        class Band
+          include Mongoid::Document
+          field :name, type: String
+          field :genre, type: String
+
+          attr_readonly :name, :genre
+        end
+
+      Readonly values are ignored when attempting to set them on persisted
+      documents, with the exception of update_attribute and remove_attribute,
+      where errors will get raised.
+
+        band = Band.create(name: "Depeche Mode")
+        band.update_attribute(:name, "Smiths") # Raises ReadonlyAttribute error.
+        band.remove_attribute(:name) # Raises ReadonlyAttribute error.
+
 
 ### Major Changes
 
@@ -23,9 +235,27 @@ For instructions on upgrading to newer versions, visit
   combination of `Model.pre_processed_defaults` and
   `Model.post_processed_defaults`
 
-* `Model.identity` and `Model.key` have been removed. For custome ids,
-  users must now override the _id field like so:
-  `field :_id, type: String, default: ->{ name }`.
+* `Model.identity` and `Model.key` have been removed. For custom ids,
+  users must now override the _id field.
+
+    When the default value is a proc, the default is applied *after* all
+    other attributes are set.
+
+        class Band
+          include Mongoid::Document
+          field :_id, type: String, default: ->{ name }
+        end
+
+    To have the default applied *before* other attributes, set `:pre_processed`
+    to true.
+
+        class Band
+          include Mongoid::Document
+          field :_id,
+            type: String,
+            pre_processed: true,
+            default: ->{ BSON::ObjectId.new.to_s }
+        end
 
 * Custom application exceptions in various languages has been removed,
   along with the `Mongoid.add_language` feature.
@@ -55,17 +285,96 @@ For instructions on upgrading to newer versions, visit
 
 ### Resolved Issues
 
+* \#1718 Ensure consistency of #first/#last in relations - they now always
+  match first/last in the database, but opts for in memory first.
+
+* \#1692/\#1376 `Model#updateattributes` and `Model#update_attributes!` now
+  accept assignment options. (Hans Hasselberg)
+
+* \#1688/\#1207 Don't require namespacing when providing class name on
+  relation macros inside the namespace. (Hans Hasselberg)
+
+* \#1665/\#1672 Expand complex criteria in nested criteria selectors, like
+  \#matches. (Hans Hasselberg)
+
 * \#1335 Don't add id sorting criteria to first/last is there is already
   sorting options on the criteria.
 
 * \#1135 DateTimes now properly get time zones on derserialization.
 
-## 2.4.3 \[ In Development \] \[ Branch: 2.4.0-stable \]
+## 2.4.5 (branch: 2.4.0-stable)
+
+### Resolved Issues
+
+* \#1727 Allow dot notation in embedded criteria to work on both embeds one
+  and embeds many. (Lyle Underwood)
+
+* \#1723 Initialize callbacks should cascade through children without needing
+  to determine if the child is changed.
+
+* \#1715 Serializable hashes are now consistent on inclusion of embedded
+  documents per or post save.
+
+* \#1713 Fixing === checks when comparing a class with an instance of a
+  subclass.
+
+* \#1495 Callbacks no longer get the 'super called outside of method` errors on
+  busted 1.8.7 rubies.
+
+## 2.4.4
+
+### Resolved Issues
+
+* \#1705 Allow changing the order of many to many foreign keys.
+
+* \#1703 Updated at is now versioned again. (Lucas Souza)
+
+* \#1686 Set the base metadata on unbind as well as bind for belongs to
+  relations.
+
+* \#1681 Attempt to create indexes for models without namespacing if the
+  namespace does not exist for the subdirectory.
+
+* \#1676 Allow eager loading to work as a default scope.
+
+* \#1665/\#1672 Expand complex criteria in nested criteria selectors, like
+  \#matches. (Hans Hasselberg)
+
+* \#1668 Ensure Mongoid logger exists before calling warn. (Rémy Coutable)
+
+* \#1661 Ensure uniqueness validation works on cloned documents.
+
+* \#1659 Clear delayed atomic sets when resetting the same embedded relation.
+
+* \#1656/\#1657 Don't hit database for uniqueness validation if BOTH scope
+  and attribute hasn't changed. (priyaaank)
+
+* \#1205/\#1642 When limiting fields returned from the database via
+  `Criteria#only` and `Criteria#without` and then subsequently saving
+  the document. Default values no longer override excluded fields.
+
+## 2.4.3
+
+### Resolved Issues
+
+* \#1647 DateTime serialization when already in UTC does not convert to
+  local time.
+
+* \#1641/\#1639 Mongoid.observer.disable :all now behaves as AR does.
+
+* \#1640 Update consumers should be tied to the name of the collection
+  they persist to, not the name of the class.
+
+* \#1637/\#1636 Scopes no longer modify parent class scopes when subclassing.
+  (Hans Hasselberg)
 
 * \#1629 $all and $in criteria on embedded many relations now properly
   handles regex searches and elements of varying length. (Douwe Maan)
 
-### Resolved Issues
+* \#1623/\#1634 Default scopes no longer break Mongoid::Versioning.
+  (Hans Hasselberg)
+
+* \#1605 Fix regression of rescue responses, Rails 3.2
 
 ## 2.4.2
 

@@ -46,7 +46,7 @@ describe Mongoid::Validations::UniquenessValidator do
 
           context "when the attribute is unique" do
 
-            before do
+            let!(:oxford) do
               Dictionary.create(:name => "Oxford")
             end
 
@@ -56,6 +56,17 @@ describe Mongoid::Validations::UniquenessValidator do
 
             it "returns true" do
               dictionary.should be_valid
+            end
+
+            context "when subsequently cloning the document" do
+
+              let(:clone) do
+                oxford.clone
+              end
+
+              it "returns false for the clone" do
+                clone.should_not be_valid
+              end
             end
           end
 
@@ -151,6 +162,25 @@ describe Mongoid::Validations::UniquenessValidator do
             it "returns true" do
               dictionary.should be_valid
             end
+          end
+
+          context "when uniqueness is violated due to scope change" do
+
+            let(:personal_folder) { Folder.create!(:name => "Personal") }
+            let(:public_folder)   { Folder.create!(:name => "Public") }
+            
+            before do
+              personal_folder.folder_items << FolderItem.new(:name => "non-unique") 
+              public_folder.folder_items   << FolderItem.new(:name => "non-unique") 
+            end
+
+            let(:item) { public_folder.folder_items.last }
+
+            it "should set an error for associated object not being unique" do
+              item.update_attributes(:folder_id => personal_folder.id)
+              item.errors.messages[:name].first.should eq("is already taken")
+            end
+
           end
 
           context "when the attribute is not unique with no scope" do

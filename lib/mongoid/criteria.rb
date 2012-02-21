@@ -225,10 +225,11 @@ module Mongoid #:nodoc:
     # @return [ Criteria ] A cloned self.
     def merge(other)
       clone.tap do |crit|
-        if other.is_a?(Criteria)
-          crit.selector.update(other.selector)
-          crit.options.update(other.options)
-          crit.documents = other.documents
+        if other.respond_to?(:to_criteria)
+          criteria = other.to_criteria
+          crit.selector.update(criteria.selector)
+          crit.options.update(criteria.options)
+          crit.documents = criteria.documents
         else
           duped = other.dup
           crit.selector.update(duped.delete(:conditions) || {})
@@ -262,6 +263,7 @@ module Mongoid #:nodoc:
       scope_options = @options.dup
       sorting = scope_options.delete(:sort)
       scope_options[:order_by] = sorting if sorting
+      scope_options[:includes] = inclusions.map(&:name) if inclusions.any?
       { :where => @selector }.merge(scope_options)
     end
     alias :to_ary :to_a
@@ -288,6 +290,18 @@ module Mongoid #:nodoc:
     # @since 2.0.0
     def raise_invalid
       raise Errors::InvalidFind.new
+    end
+
+    # Convenience for objects that want to be merged into a criteria.
+    #
+    # @example Convert to a criteria.
+    #   criteria.to_criteria
+    #
+    # @return [ Criteria ] self.
+    #
+    # @since 3.0.0
+    def to_criteria
+      self
     end
 
     protected

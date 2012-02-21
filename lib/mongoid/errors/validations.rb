@@ -8,13 +8,14 @@ module Mongoid #:nodoc
     # @example Create the error.
     #   Validations.new(person.errors)
     class Validations < MongoidError
-      attr_reader :document
       def initialize(document)
-        @document = document
         super(
-          translate(
+          compose_message(
             "validations",
-            { :errors => document.errors.full_messages.join(", ") }
+            {
+              :document => document.class,
+              :errors => document.errors.full_messages.join(", ")
+            }
           )
         )
       end

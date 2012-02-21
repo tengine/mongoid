@@ -4,6 +4,13 @@ describe Mongoid::Relations::Referenced::ManyToMany do
 
   before(:all) do
     Mongoid.raise_not_found_error = true
+    Person.autosave(Person.relations["preferences"].merge!(:autosave => true))
+    Person.synced(Person.relations["preferences"])
+  end
+
+  after(:all) do
+    Person.reset_callbacks(:save)
+    Person.reset_callbacks(:destroy)
   end
 
   [ :<<, :push, :concat ].each do |method|
@@ -42,7 +49,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
           end
 
           let!(:person) do
-            Person.create(:ssn => "345-11-1123") do |doc|
+            Person.create do |doc|
               doc.preferences << preference
             end
           end
@@ -75,7 +82,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
         context "when the parent is a new record" do
 
           let(:person) do
-            Person.new(:ssn => "423-12-0789")
+            Person.new
           end
 
           context "when the child is new" do
@@ -160,7 +167,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
             end
 
             let(:person) do
-              Person.new(:ssn => "345-12-9867", :preference_ids => [ preference.id ])
+              Person.new(:preference_ids => [ preference.id ])
             end
 
             before do
@@ -192,7 +199,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
         context "when the parent is not a new record" do
 
           let(:person) do
-            Person.create(:ssn => "554-44-3887")
+            Person.create
           end
 
           let(:preference) do
@@ -274,7 +281,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
         context "when both sides have been persisted" do
 
           let(:person) do
-            Person.create(:ssn => "123-11-5555")
+            Person.create
           end
 
           let(:event) do
@@ -541,7 +548,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
       context "when the parent is not a new record" do
 
         let(:person) do
-          Person.create(:ssn => "437-11-1112")
+          Person.create
         end
 
         let(:preference) do
@@ -714,7 +721,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
           context "when the relation has been loaded" do
 
             let(:person) do
-              Person.create(:ssn => "437-11-1112")
+              Person.create
             end
 
             let(:preference) do
@@ -754,7 +761,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
             end
 
             let(:person) do
-              Person.create(:ssn => "437-11-1112").tap do |p|
+              Person.create.tap do |p|
                 p.preferences = [ preference ]
               end
             end
@@ -783,7 +790,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
   describe "#avg" do
 
     let(:person) do
-      Person.create(:ssn => "123-45-6789")
+      Person.create
     end
 
     let(:preference_one) do
@@ -873,7 +880,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
         context "when the parent is not a new record" do
 
           let(:person) do
-            Person.create(:ssn => "554-44-3891")
+            Person.create
           end
 
           let!(:preference) do
@@ -950,7 +957,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
       context "when the parent has been persisted" do
 
         let!(:person) do
-          Person.create(:ssn => "123-45-9988")
+          Person.create
         end
 
         context "when the children are persisted" do
@@ -1032,7 +1039,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
   describe "#count" do
 
     let(:person) do
-      Person.create(:ssn => "111-11-1111")
+      Person.create
     end
 
     context "when documents have been persisted" do
@@ -1131,7 +1138,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
       context "when providing scoped mass assignment" do
 
         let(:person) do
-          Person.create(:ssn => "123-12-1211")
+          Person.create
         end
 
         let(:house) do
@@ -1183,7 +1190,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
         context "when the parent is not a new record" do
 
           let(:person) do
-            Person.send(method, :ssn => "554-44-3891")
+            Person.send(method)
           end
 
           let!(:preference) do
@@ -1235,7 +1242,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
     context "when validation fails" do
 
       let(:person) do
-        Person.create(:ssn => "121-12-1198")
+        Person.create
       end
 
       context "when the relation is not polymorphic" do
@@ -1252,7 +1259,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
   describe "#delete" do
 
     let(:person) do
-      Person.create(:ssn => "666-66-6666")
+      Person.create
     end
 
     let(:preference_one) do
@@ -1449,7 +1456,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
         context "when conditions are provided" do
 
           let(:person) do
-            Person.create(:ssn => "123-32-2321")
+            Person.create
           end
 
           let!(:preference_one) do
@@ -1487,7 +1494,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
         context "when conditions are not provided" do
 
           let(:person) do
-            Person.create(:ssn => "123-32-2321").tap do |person|
+            Person.create.tap do |person|
               person.preferences.create(:name => "Testing")
               person.preferences.create(:name => "Test")
             end
@@ -1526,7 +1533,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
     context "when the relation is not polymorphic" do
 
       let!(:person) do
-        Person.create(:ssn => "243-12-5243")
+        Person.create
       end
 
       let!(:preference) do
@@ -1569,7 +1576,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
   describe "#exists?" do
 
     let!(:person) do
-      Person.create(:ssn => "292-19-4232")
+      Person.create
     end
 
     context "when documents exist in the database" do
@@ -1600,7 +1607,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
     context "when the relation is not polymorphic" do
 
       let(:person) do
-        Person.create(:ssn => "777-67-0000")
+        Person.create
       end
 
       let!(:preference_one) do
@@ -1752,7 +1759,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
     context "when the relation is not polymorphic" do
 
       let(:person) do
-        Person.create(:ssn => "666-66-1321")
+        Person.create
       end
 
       let!(:preference) do
@@ -1792,7 +1799,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
     context "when the relation is not polymorphic" do
 
       let(:person) do
-        Person.create(:ssn => "666-67-1234")
+        Person.create
       end
 
       let!(:preference) do
@@ -1844,7 +1851,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
   describe "#max" do
 
     let(:person) do
-      Person.create(:ssn => "123-45-6789")
+      Person.create
     end
 
     let(:preference_one) do
@@ -1871,7 +1878,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
   describe "#method_missing" do
 
     let!(:person) do
-      Person.create(:ssn => "333-33-3333")
+      Person.create
     end
 
     let!(:preference_one) do
@@ -1956,7 +1963,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
   describe "#min" do
 
     let(:person) do
-      Person.create(:ssn => "123-45-6789")
+      Person.create
     end
 
     let(:preference_one) do
@@ -1990,7 +1997,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
   describe "#nullify_all" do
 
     let(:person) do
-      Person.create(:ssn => "888-88-8888")
+      Person.create
     end
 
     let!(:preference_one) do
@@ -2085,7 +2092,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
   describe "#sum" do
 
     let(:person) do
-      Person.create(:ssn => "123-45-6789")
+      Person.create
     end
 
     let(:preference_one) do
@@ -2133,7 +2140,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
     describe "##{method}" do
 
       let(:person) do
-        Person.create(:ssn => "666-77-4321")
+        Person.create
       end
 
       context "when documents have been persisted" do
@@ -2166,7 +2173,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
     context "when the relation has no default scope" do
 
       let!(:person) do
-        Person.create(:ssn => "123-11-1111")
+        Person.create
       end
 
       let!(:preference_one) do
@@ -2189,7 +2196,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
     context "when the relation has a default scope" do
 
       let!(:person) do
-        Person.create(:ssn => "333-33-3322")
+        Person.create
       end
 
       let!(:house_one) do
@@ -2233,7 +2240,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
   context "when setting the ids directly after the documents" do
 
     let!(:person) do
-      Person.create!(:ssn => "132-11-1433", :title => "The Boss")
+      Person.create!(:title => "The Boss")
     end
 
     let!(:girlfriend_house) do
@@ -2390,7 +2397,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
   context "when binding the relation multiple times" do
 
     let(:person) do
-      Person.create(:ssn => "123-66-6666")
+      Person.create
     end
 
     let(:preference) do
@@ -2413,7 +2420,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
   context "when the association has order criteria" do
 
     let(:person) do
-      Person.create(:ssn => "999-99-9999")
+      Person.create
     end
 
     let(:preference_one) do
@@ -2449,7 +2456,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
   context "when the parent is not a new record and freshly loaded" do
 
     let(:person) do
-      Person.create(:ssn => "437-11-1110")
+      Person.create
     end
 
     let(:preference) do
@@ -2481,7 +2488,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
   context "when reloading the relation" do
 
     let!(:person) do
-      Person.create(:ssn => "243-41-9678")
+      Person.create
     end
 
     let!(:preference_one) do
@@ -2534,7 +2541,7 @@ describe Mongoid::Relations::Referenced::ManyToMany do
     context "when the document is new" do
 
       let!(:person) do
-        Person.create(:ssn => "123-11-1111", :preference_names => "one, two")
+        Person.create(:preference_names => "one, two")
       end
 
       let(:preference_one) do
@@ -2559,6 +2566,84 @@ describe Mongoid::Relations::Referenced::ManyToMany do
 
       it "sets the second inverse keys" do
         preference_two.people.should eq([ person ])
+      end
+    end
+  end
+
+  context "when changing the order of existing ids" do
+
+    let(:person) do
+      Person.new
+    end
+
+    let(:preference_one) do
+      Preference.create(:name => "one")
+    end
+
+    let(:preference_two) do
+      Preference.create(:name => "two")
+    end
+
+    before do
+      person.preference_ids = [ preference_one.id, preference_two.id ]
+      person.save
+    end
+
+    context "and the order is changed" do
+
+      before do
+        person.preference_ids = [ preference_two.id, preference_one.id ]
+        person.save
+      end
+
+      let(:reloaded) do
+        Person.find(person.id)
+      end
+
+      it "persists the change in id order" do
+        reloaded.preference_ids.should eq([ preference_two.id, preference_one.id ])
+      end
+    end
+
+    context "and the order is changed and an element is added" do
+
+      let(:preference_three) do
+        Preference.create(:name => "three")
+      end
+
+      before do
+        person.preference_ids = [ preference_two.id, preference_one.id, preference_three.id ]
+        person.save
+      end
+
+      let(:reloaded) do
+        Person.find(person.id)
+      end
+
+      it "also persists the change in id order" do
+        reloaded.preference_ids.should eq([ preference_two.id, preference_one.id, preference_three.id ])
+      end
+    end
+
+    context "and the order is changed and an element is removed" do
+
+      let(:preference_three) do
+        Preference.create(:name => "three")
+      end
+
+      before do
+        person.preference_ids = [ preference_one.id, preference_two.id, preference_three.id ]
+        person.save
+        person.preference_ids = [ preference_three.id, preference_two.id ]
+        person.save
+      end
+
+      let(:reloaded) do
+        Person.find(person.id)
+      end
+
+      it "also persists the change in id order" do
+        reloaded.preference_ids.should eq([ preference_three.id, preference_two.id ])
       end
     end
   end

@@ -25,10 +25,10 @@ module Mongoid #:nodoc
     option :include_root_in_json, :default => false
     option :include_type_for_serialization, :default => false
     option :max_retries_on_connection_failure, :default => 0
-    option :parameterize_keys, :default => true
     option :scope_overwrite_exception, :default => false
     option :persist_in_safe_mode, :default => false
     option :preload_models, :default => false
+    option :protect_sensitive_fields, :default => true
     option :raise_not_found_error, :default => true
     option :skip_version_check, :default => false
     option :time_zone, :default => nil
@@ -85,10 +85,11 @@ module Mongoid #:nodoc
     #   Mongoid.load!("/path/to/mongoid.yml")
     #
     # @param [ String ] path The path to the file.
+    # @param [ String, Symbol ] environment The environment to load.
     #
     # @since 2.0.1
-    def load!(path)
-      Environment.load_yaml(path).tap do |settings|
+    def load!(path, environment = nil)
+      Environment.load_yaml(path, environment).tap do |settings|
         from_hash(settings) if settings.present?
       end
     end

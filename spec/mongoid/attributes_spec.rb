@@ -46,7 +46,7 @@ describe Mongoid::Attributes do
     context "when the document is an existing record" do
 
       let!(:person) do
-        Person.create(:ssn => "123-11-4413")
+        Person.create
       end
 
       context "when the attribute does not exist" do
@@ -629,7 +629,6 @@ describe Mongoid::Attributes do
 
       let!(:attributes) do
         {
-          :_id => bson_id,
           :title => "value",
           :age => "30",
           :terms => "true",
@@ -654,10 +653,6 @@ describe Mongoid::Attributes do
 
       it "casts booleans" do
         person[:terms].should be_true
-      end
-
-      it "casts ids" do
-        person[:_id].should eq(bson_id)
       end
 
       it "sets empty strings to nil" do
@@ -960,18 +955,45 @@ describe Mongoid::Attributes do
 
     context "when the attribute exists" do
 
-      it "removes the attribute" do
-        person = Person.new(:title => "Sir")
+      let(:person) do
+        Person.create(:title => "Sir")
+      end
+
+      before do
         person.remove_attribute(:title)
+      end
+
+      it "removes the attribute" do
         person.title.should be_nil
+      end
+
+      it "removes the key from the attributes hash" do
+        person.has_attribute?(:title).should be_false
+      end
+
+      context "when saving after the removal" do
+
+        before do
+          person.save
+        end
+
+        it "persists the removal" do
+          person.reload.has_attribute?(:title).should be_false
+        end
       end
     end
 
     context "when the attribute does not exist" do
 
-      it "does nothing" do
-        person = Person.new
+      let(:person) do
+        Person.new
+      end
+
+      before do
         person.remove_attribute(:title)
+      end
+
+      it "does not fail" do
         person.title.should be_nil
       end
     end
@@ -1369,7 +1391,7 @@ describe Mongoid::Attributes do
   context "when persisting nil attributes" do
 
     let!(:person) do
-      Person.create(:score => nil, :ssn => "555-66-7777")
+      Person.create(:score => nil)
     end
 
     it "has an entry in the attributes" do
@@ -1392,7 +1414,7 @@ describe Mongoid::Attributes do
     context "when no value exists in the database" do
 
       let(:person) do
-        Person.create(:ssn => "123-77-7763")
+        Person.create
       end
 
       it "applies the default value" do
@@ -1405,7 +1427,7 @@ describe Mongoid::Attributes do
       context "when the value is not nil" do
 
         let!(:person) do
-          Person.create(:ssn => "789-67-7861", :age => 50)
+          Person.create(:age => 50)
         end
 
         let(:from_db) do
@@ -1420,7 +1442,7 @@ describe Mongoid::Attributes do
       context "when the value is explicitly nil" do
 
         let!(:person) do
-          Person.create(:ssn => "789-67-7861", :age => nil)
+          Person.create(:age => nil)
         end
 
         let(:from_db) do

@@ -78,7 +78,7 @@ module Mongoid #:nodoc:
     #
     # @since 2.1.0
     def versioned_changes
-      only_versioned_attributes(changes)
+      only_versioned_attributes(changes.except("updated_at"))
     end
 
     # Filters the results of +attributes+ by removing any fields that should
@@ -131,7 +131,7 @@ module Mongoid #:nodoc:
     # @since 2.0.0
     def previous_revision
       _loading_revision do
-        self.class.
+        self.class.unscoped.
           where(:_id => id).
           any_of({ :version => version }, { :version => nil }).first
       end

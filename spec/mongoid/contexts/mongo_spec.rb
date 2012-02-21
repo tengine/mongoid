@@ -20,8 +20,7 @@ describe Mongoid::Contexts::Mongo do
             Person.create(
               :title => "Sir",
               :age => ((n + 1) * 10),
-              :aliases => ["D", "Durran"],
-              :ssn => "#{n}"
+              :aliases => ["D", "Durran"]
             )
           end
         end
@@ -34,7 +33,7 @@ describe Mongoid::Contexts::Mongo do
       context "when values do not exist" do
 
         before do
-          Person.create(:ssn => "534-12-0923")
+          Person.create
         end
 
         it "returns nil" do
@@ -45,7 +44,7 @@ describe Mongoid::Contexts::Mongo do
       context "when no document has the field" do
 
         before do
-          Person.create(:ssn => "121-11-1234")
+          Person.create
         end
 
         it "returns 0" do
@@ -64,8 +63,7 @@ describe Mongoid::Contexts::Mongo do
           Person.create(
             :title => "Sir",
             :age => ((n + 1) * 10),
-            :aliases => ["D", "Durran"],
-            :ssn => "#{n}"
+            :aliases => ["D", "Durran"]
           )
         end
       end
@@ -118,8 +116,7 @@ describe Mongoid::Contexts::Mongo do
           Person.create(
             :title => "Sir",
             :age => ((n + 1) * 10),
-            :aliases => ["D", "Durran"],
-            :ssn => "#{n}"
+            :aliases => ["D", "Durran"]
           )
         end
       end
@@ -214,8 +211,7 @@ describe Mongoid::Contexts::Mongo do
           Person.create(
             :title => "Sir",
             :age => (n * 10),
-            :aliases => ["D", "Durran"],
-            :ssn => "#{n}"
+            :aliases => ["D", "Durran"]
           )
         end
       end
@@ -227,8 +223,8 @@ describe Mongoid::Contexts::Mongo do
       context "when the field is not defined" do
 
         before do
-          Person.create(:ssn => "123-22-1111")
-          Person.create(:ssn => "123-22-1112", :no_definition => 5)
+          Person.create
+          Person.create(:no_definition => 5)
         end
 
         it "returns the sum" do
@@ -239,7 +235,7 @@ describe Mongoid::Contexts::Mongo do
       context "when no document has the field" do
 
         before do
-          Person.create(:ssn => "121-11-1234")
+          Person.create
         end
 
         it "returns 0" do
@@ -265,8 +261,7 @@ describe Mongoid::Contexts::Mongo do
           Person.create(
             :title => "Sir",
             :age => ((n + 1) * 10),
-            :aliases => ["D", "Durran"],
-            :ssn => "#{n}"
+            :aliases => ["D", "Durran"]
           )
         end
       end
@@ -278,8 +273,8 @@ describe Mongoid::Contexts::Mongo do
       context "when the field is not defined" do
 
         before do
-          Person.create(:ssn => "123-22-1111")
-          Person.create(:ssn => "123-22-1112", :no_definition => 5)
+          Person.create
+          Person.create(:no_definition => 5)
         end
 
         it "returns the sum" do
@@ -290,7 +285,7 @@ describe Mongoid::Contexts::Mongo do
       context "when no document has the field" do
 
         before do
-          Person.create(:ssn => "121-11-1234")
+          Person.create
         end
 
         it "returns 0" do
@@ -306,7 +301,7 @@ describe Mongoid::Contexts::Mongo do
       end
 
       before do
-        Person.create(:ssn => "444-44-4444", :lunch_time => time)
+        Person.create(:lunch_time => time)
       end
 
       it "returns the value" do
@@ -333,8 +328,7 @@ describe Mongoid::Contexts::Mongo do
             Person.create(
               :title => "Sir",
               :age => 5,
-              :aliases => ["D", "Durran"],
-              :ssn => "#{n}"
+              :aliases => ["D", "Durran"]
             )
           end
         end
@@ -347,7 +341,7 @@ describe Mongoid::Contexts::Mongo do
       context "when they do not contain the field" do
 
         before do
-          Person.create(:ssn => "243-12-2143")
+          Person.create
         end
 
         it "returns nil" do
@@ -358,8 +352,8 @@ describe Mongoid::Contexts::Mongo do
       context "when the field is not defined" do
 
         before do
-          Person.create(:ssn => "123-22-1111")
-          Person.create(:ssn => "123-22-1112", :no_definition => 5)
+          Person.create
+          Person.create(:no_definition => 5)
         end
 
         it "returns the sum" do
@@ -370,7 +364,7 @@ describe Mongoid::Contexts::Mongo do
       context "when no document has the field" do
 
         before do
-          Person.create(:ssn => "121-11-1234")
+          Person.create
         end
 
         it "returns 0" do

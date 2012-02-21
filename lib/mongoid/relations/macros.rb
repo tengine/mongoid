@@ -132,7 +132,7 @@ module Mongoid # :nodoc:
           characterize(name, Referenced::In, options, &block).tap do |meta|
             relate(name, meta)
             reference(meta)
-            autosave(meta)
+            builder(name, meta).creator(name, meta).autosave(meta)
             validates_relation(meta)
           end
         end
@@ -283,7 +283,16 @@ module Mongoid # :nodoc:
               :metadata => metadata,
               :default => metadata.foreign_key_default
             )
-            index(key, :background => true) if metadata.indexed?
+            if metadata.indexed?
+              if metadata.polymorphic?
+                index(
+                  [[ key, Mongo::ASCENDING ], [ metadata.type, Mongo::ASCENDING ]],
+                  :background => true
+                )
+              else
+                index(key, :background => true)
+              end
+            end
           end
         end
 

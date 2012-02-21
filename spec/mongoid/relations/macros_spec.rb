@@ -3,11 +3,7 @@ require "spec_helper"
 describe Mongoid::Relations::Macros do
 
   class TestClass
-    include Mongoid::Relations
-    include Mongoid::Dirty
-    include Mongoid::Fields
-    include Mongoid::Callbacks
-    include Mongoid::Validations
+    include Mongoid::Document
   end
 
   let(:klass) do
@@ -247,6 +243,14 @@ describe Mongoid::Relations::Macros do
 
       it "defines the setter" do
         klass.allocate.should respond_to(:person=)
+      end
+
+      it "defines the builder" do
+        klass.allocate.should respond_to(:build_person)
+      end
+
+      it "defines the creator" do
+        klass.allocate.should respond_to(:create_person)
       end
 
       it "creates the correct relation" do

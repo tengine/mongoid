@@ -3,7 +3,7 @@ require "spec_helper"
 describe Mongoid::Relations::Referenced::In do
 
   let(:person) do
-    Person.create(:ssn => "555-55-1111")
+    Person.create
   end
 
   describe "#=" do
@@ -55,7 +55,7 @@ describe Mongoid::Relations::Referenced::In do
     context "when referencing a document from an embedded document" do
 
       let(:person) do
-        Person.create(:ssn => "111-11-1111")
+        Person.create
       end
 
       let(:address) do
@@ -125,7 +125,7 @@ describe Mongoid::Relations::Referenced::In do
         context "when the child is not a new record" do
 
           let(:person) do
-            Person.new(:ssn => "437-11-1112")
+            Person.new
           end
 
           let(:game) do
@@ -266,7 +266,7 @@ describe Mongoid::Relations::Referenced::In do
         context "when the child is not a new record" do
 
           let(:person) do
-            Person.new(:ssn => "437-11-1112")
+            Person.new
           end
 
           let(:post) do
@@ -293,57 +293,77 @@ describe Mongoid::Relations::Referenced::In do
 
       context "when the relation is polymorphic" do
 
-        context "when the child is a new record" do
+        context "when multiple relations against the same class exist" do
 
-          let(:movie) do
-            Movie.new
+          let(:face) do
+            Face.new
           end
 
-          let(:rating) do
-            Rating.new
+          let(:eye) do
+            Eye.new
           end
 
-          before do
-            rating.ratable = movie
-          end
-
-          it "sets the target of the relation" do
-            rating.ratable.target.should eq(movie)
-          end
-
-          it "sets the foreign key on the relation" do
-            rating.ratable_id.should eq(movie.id)
-          end
-
-          it "does not save the target" do
-            movie.should_not be_persisted
+          it "raises an error" do
+            expect {
+              eye.eyeable = face
+            }.to raise_error(Mongoid::Errors::InvalidSetPolymorphicRelation)
           end
         end
 
-        context "when the child is not a new record" do
+        context "when one relation against the same class exists" do
 
-          let(:movie) do
-            Movie.new(:ssn => "437-11-1112")
+          context "when the child is a new record" do
+
+            let(:movie) do
+              Movie.new
+            end
+
+            let(:rating) do
+              Rating.new
+            end
+
+            before do
+              rating.ratable = movie
+            end
+
+            it "sets the target of the relation" do
+              rating.ratable.target.should eq(movie)
+            end
+
+            it "sets the foreign key on the relation" do
+              rating.ratable_id.should eq(movie.id)
+            end
+
+            it "does not save the target" do
+              movie.should_not be_persisted
+            end
           end
 
-          let(:rating) do
-            Rating.create
-          end
+          context "when the child is not a new record" do
 
-          before do
-            rating.ratable = movie
-          end
+            let(:movie) do
+              Movie.new
+            end
 
-          it "sets the target of the relation" do
-            rating.ratable.target.should eq(movie)
-          end
+            let(:rating) do
+              Rating.create
+            end
 
-          it "sets the foreign key of the relation" do
-            rating.ratable_id.should eq(movie.id)
-          end
+            before do
+              rating.ratable = movie
+            end
 
-          it "does not saves the target" do
-            movie.should_not be_persisted
+            it "sets the target of the relation" do
+              rating.ratable.target.should eq(movie)
+            end
+
+            it "sets the foreign key of the relation" do
+              rating.ratable_id.should eq(movie.id)
+            end
+
+            it "does not saves the target" do
+              movie.should_not be_persisted
+            end
           end
         end
       end
@@ -351,6 +371,247 @@ describe Mongoid::Relations::Referenced::In do
   end
 
   describe "#= nil" do
+
+    context "when dependent is destroy" do
+
+      let(:account) do
+        Account.create
+      end
+
+      let(:drug) do
+        Drug.create
+      end
+
+      let(:person) do
+        Person.create
+      end
+
+      context "when relation is has_one" do
+
+        before do
+          Account.belongs_to :person, :dependent => :destroy
+          Person.has_one :account
+          person.account = account
+          person.save
+        end
+
+        after :all do
+          Account.belongs_to :person, :dependent => :nullify
+          Person.has_one :account, :validate => false
+        end
+
+        context "when parent exists" do
+
+          context "when child is destroyed" do
+
+            before do
+              account.delete
+            end
+
+            it "deletes child" do
+              account.should be_destroyed
+            end
+
+            it "deletes parent" do
+              person.should be_destroyed
+            end
+          end
+        end
+      end
+
+      context "when relation is has_many" do
+
+        before do
+          Drug.belongs_to :person, :dependent => :destroy
+          Person.has_many :drugs
+          person.drugs = [drug]
+          person.save
+        end
+
+        after :all do
+          Drug.belongs_to :person, :dependent => :nullify
+          Person.has_many :drugs, :validate => false
+        end
+
+        context "when parent exists" do
+
+          context "when child is destroyed" do
+
+            before do
+              drug.delete
+            end
+
+            it "deletes child" do
+              drug.should be_destroyed
+            end
+
+            it "deletes parent" do
+              person.should be_destroyed
+            end
+          end
+        end
+      end
+    end
+
+    context "when dependent is delete" do
+
+      let(:account) do
+        Account.create
+      end
+
+      let(:drug) do
+        Drug.create
+      end
+
+      let(:person) do
+        Person.create
+      end
+
+      context "when relation is has_one" do
+
+        before do
+          Account.belongs_to :person, :dependent => :delete
+          Person.has_one :account
+          person.account = account
+          person.save
+        end
+
+        after :all do
+          Account.belongs_to :person, :dependent => :nullify
+          Person.has_one :account, :validate => false
+        end
+
+        context "when parent is persisted" do
+
+          context "when child is deleted" do
+
+            before do
+              account.delete
+            end
+
+            it "deletes child" do
+              account.should be_destroyed
+            end
+
+            it "deletes parent" do
+              person.should be_destroyed
+            end
+          end
+        end
+      end
+
+      context "when relation is has_many" do
+
+        before do
+          Drug.belongs_to :person, :dependent => :delete
+          Person.has_many :drugs
+          person.drugs = [drug]
+          person.save
+        end
+
+        after :all do
+          Drug.belongs_to :person, :dependent => :nullify
+          Person.has_many :drugs, :validate => false
+        end
+
+        context "when parent exists" do
+
+          context "when child is destroyed" do
+
+            before do
+              drug.delete
+            end
+
+            it "deletes child" do
+              drug.should be_destroyed
+            end
+
+            it "deletes parent" do
+              person.should be_destroyed
+            end
+          end
+        end
+      end
+    end
+
+    context "when dependent is nullify" do
+
+      let(:account) do
+        Account.create
+      end
+
+      let(:drug) do
+        Drug.create
+      end
+
+      let(:person) do
+        Person.create
+      end
+
+      context "when relation is has_one" do
+
+        before do
+          Account.belongs_to :person, :dependent => :nullify
+          Person.has_one :account
+          person.account = account
+          person.save
+        end
+
+        context "when parent is persisted" do
+
+          context "when child is deleted" do
+
+            before do
+              account.delete
+            end
+
+            it "deletes child" do
+              account.should be_destroyed
+            end
+
+            it "doesn't delete parent" do
+              person.should_not be_destroyed
+            end
+
+            it "removes the link" do
+              person.account.should be_nil
+            end
+          end
+        end
+      end
+
+      context "when relation is has_many" do
+
+        before do
+          Drug.belongs_to :person, :dependent => :nullify
+          Person.has_many :drugs
+          person.drugs = [drug]
+          person.save
+        end
+
+        context "when parent exists" do
+
+          context "when child is destroyed" do
+
+            before do
+              drug.delete
+            end
+
+            it "deletes child" do
+              drug.should be_destroyed
+            end
+
+            it "doesn't deletes parent" do
+              person.should_not be_destroyed
+            end
+
+            it "removes the link" do
+              person.drugs.should eq([])
+            end
+          end
+        end
+      end
+    end
 
     context "when the inverse relation has no reference defined" do
 
@@ -411,7 +672,7 @@ describe Mongoid::Relations::Referenced::In do
         context "when the parent is not a new record" do
 
           let(:person) do
-            Person.create(:ssn => "437-11-1112")
+            Person.create
           end
 
           let(:game) do
@@ -443,59 +704,121 @@ describe Mongoid::Relations::Referenced::In do
 
       context "when the relation is polymorphic" do
 
-        context "when the parent is a new record" do
+        context "when multiple relations against the same class exist" do
 
-          let(:bar) do
-            Bar.new
+          context "when the parent is a new record" do
+
+            let(:face) do
+              Face.new
+            end
+
+            let(:eye) do
+              Eye.new
+            end
+
+            before do
+              face.left_eye = eye
+              eye.eyeable = nil
+            end
+
+            it "sets the relation to nil" do
+              eye.eyeable.should be_nil
+            end
+
+            it "removed the inverse relation" do
+              face.left_eye.should be_nil
+            end
+
+            it "removes the foreign key value" do
+              eye.eyeable_id.should be_nil
+            end
           end
 
-          let(:rating) do
-            Rating.new
-          end
+          context "when the parent is not a new record" do
 
-          before do
-            rating.ratable = bar
-            rating.ratable = nil
-          end
+            let(:face) do
+              Face.new
+            end
 
-          it "sets the relation to nil" do
-            rating.ratable.should be_nil
-          end
+            let(:eye) do
+              Eye.create
+            end
 
-          it "removed the inverse relation" do
-            bar.rating.should be_nil
-          end
+            before do
+              face.left_eye = eye
+              eye.eyeable = nil
+            end
 
-          it "removes the foreign key value" do
-            rating.ratable_id.should be_nil
+            it "sets the relation to nil" do
+              eye.eyeable.should be_nil
+            end
+
+            it "removed the inverse relation" do
+              face.left_eye.should be_nil
+            end
+
+            it "removes the foreign key value" do
+              eye.eyeable_id.should be_nil
+            end
           end
         end
 
-        context "when the parent is not a new record" do
+        context "when one relation against the same class exists" do
 
-          let(:bar) do
-            Bar.new(:ssn => "437-11-1112")
+          context "when the parent is a new record" do
+
+            let(:bar) do
+              Bar.new
+            end
+
+            let(:rating) do
+              Rating.new
+            end
+
+            before do
+              rating.ratable = bar
+              rating.ratable = nil
+            end
+
+            it "sets the relation to nil" do
+              rating.ratable.should be_nil
+            end
+
+            it "removed the inverse relation" do
+              bar.rating.should be_nil
+            end
+
+            it "removes the foreign key value" do
+              rating.ratable_id.should be_nil
+            end
           end
 
-          let(:rating) do
-            Rating.create
-          end
+          context "when the parent is not a new record" do
 
-          before do
-            rating.ratable = bar
-            rating.ratable = nil
-          end
+            let(:bar) do
+              Bar.new
+            end
 
-          it "sets the relation to nil" do
-            rating.ratable.should be_nil
-          end
+            let(:rating) do
+              Rating.create
+            end
 
-          it "removed the inverse relation" do
-            bar.rating.should be_nil
-          end
+            before do
+              rating.ratable = bar
+              rating.ratable = nil
+            end
 
-          it "removes the foreign key value" do
-            rating.ratable_id.should be_nil
+            it "sets the relation to nil" do
+              rating.ratable.should be_nil
+            end
+
+            it "removed the inverse relation" do
+              bar.rating.should be_nil
+            end
+
+            it "removes the foreign key value" do
+              rating.ratable_id.should be_nil
+            end
           end
         end
       end
@@ -536,7 +859,7 @@ describe Mongoid::Relations::Referenced::In do
         context "when the parent is not a new record" do
 
           let(:person) do
-            Person.new(:ssn => "437-11-1112")
+            Person.new
           end
 
           let(:post) do
@@ -595,7 +918,7 @@ describe Mongoid::Relations::Referenced::In do
         context "when the parent is not a new record" do
 
           let(:movie) do
-            Movie.new(:ssn => "437-11-1112")
+            Movie.new
           end
 
           let(:rating) do
@@ -656,7 +979,7 @@ describe Mongoid::Relations::Referenced::In do
     context "when the relation is not polymorphic" do
 
       let!(:person) do
-        Person.create(:ssn => "243-12-5243")
+        Person.create
       end
 
       let!(:post) do
@@ -751,7 +1074,7 @@ describe Mongoid::Relations::Referenced::In do
 
     it "returns the valid options" do
       described_class.valid_options.should eq(
-        [ :autosave, :foreign_key, :index, :polymorphic ]
+        [ :autosave, :dependent, :foreign_key, :index, :polymorphic ]
       )
     end
   end
@@ -789,10 +1112,74 @@ describe Mongoid::Relations::Referenced::In do
     end
   end
 
+  context "when the relation belongs to a has many and has one" do
+
+    before(:all) do
+      class A
+        include Mongoid::Document
+        has_many :bs, :inverse_of => :a
+      end
+
+      class B
+        include Mongoid::Document
+        belongs_to :a, :inverse_of => :bs
+        belongs_to :c, :inverse_of => :b
+      end
+
+      class C
+        include Mongoid::Document
+        has_one :b, :inverse_of => :c
+      end
+    end
+
+    after(:all) do
+      Object.send(:remove_const, :A)
+      Object.send(:remove_const, :B)
+      Object.send(:remove_const, :C)
+    end
+
+    context "when setting the has one" do
+
+      let(:a) do
+        A.new
+      end
+
+      let(:b) do
+        B.new
+      end
+
+      let(:c) do
+        C.new
+      end
+
+      before do
+        b.c = c
+      end
+
+      context "when subsequently setting the has many" do
+
+        before do
+          b.a = a
+        end
+
+        context "when setting the has one again" do
+
+          before do
+            b.c = c
+          end
+
+          it "allows the reset of the has one" do
+            b.c.should eq(c)
+          end
+        end
+      end
+    end
+  end
+
   context "when replacing the relation with another" do
 
     let!(:person) do
-      Person.create(:ssn => "321-99-8888")
+      Person.create
     end
 
     let!(:post) do
@@ -878,11 +1265,11 @@ describe Mongoid::Relations::Referenced::In do
   context "when reloading the relation" do
 
     let!(:person_one) do
-      Person.create(:ssn => "243-41-9678", :title => "Mr.")
+      Person.create
     end
 
     let!(:person_two) do
-      Person.create(:ssn => "243-41-9699", :title => "Sir")
+      Person.create(:title => "Sir")
     end
 
     let!(:game) do
@@ -984,7 +1371,9 @@ describe Mongoid::Relations::Referenced::In do
   context "when creating with a reference to an integer id parent" do
 
     let!(:jar) do
-      Jar.create(:_id => 1)
+      Jar.create do |doc|
+        doc._id = 1
+      end
     end
 
     let(:cookie) do

@@ -18,7 +18,7 @@ module Rails #:nodoc:
       Dir.glob(pattern).each do |file|
         logger = Logger.new($stdout)
         begin
-          model = determine_model(file)
+          model = determine_model(file, logger)
         rescue => e
           logger.error(%Q{Failed to determine model from #{file}:
             #{e.class}:#{e.message}
@@ -26,10 +26,13 @@ module Rails #:nodoc:
           })
         end
         if model
-          model.create_indexes
-          logger.info("Generated indexes for #{model}")
-        else
-          logger.info("Not a Mongoid parent model: #{file}")
+          next if model.index_options.empty?
+          unless model.embedded?
+            model.create_indexes
+            logger.info("Creating indexes on: #{model} for: #{model.index_options.keys.join(", ")}.")
+          else
+            logger.info("Index ignored on: #{model}, please define in the root model.")
+          end
         end
       end
     end
@@ -83,13 +86,21 @@ module Rails #:nodoc:
     # @return [ Class ] The model.
     #
     # @since 2.1.0
-    def determine_model(file)
-      if file =~ /app\/models\/(.*).rb$/
-        model_path = $1.split('/')
-        klass = model_path.map { |path| path.camelize }.join('::').constantize
-        if klass.ancestors.include?(::Mongoid::Document) && !klass.embedded
-          return klass
-        end
+    def determine_model(file, logger)
+      return nil unless file =~ /app\/models\/(.*).rb$/
+      return nil unless logger
+
+      model_path = $1.split('/')
+      begin
+        parts = model_path.map { |path| path.camelize }
+        name = parts.join("::")
+        klass = name.constantize
+      rescue NameError, LoadError => e
+        logger.info("Attempted to constantize #{name}, trying without namespacing.")
+        klass = parts.last.constantize
+      end
+      if klass.ancestors.include?(::Mongoid::Document)
+        return klass
       end
     end
   end

@@ -16,8 +16,7 @@ describe Mongoid::NamedScope do
       Person.create(
         :title => "Dr.",
         :age => 65,
-        :terms => true,
-        :ssn => "123-22-8346"
+        :terms => true
       )
     end
 
@@ -68,9 +67,9 @@ describe Mongoid::NamedScope do
     context "using order_by in a named scope" do
 
       before do
-        Person.create(:blood_alcohol_content => 0.5, :ssn => "121-22-8346")
-        Person.create(:blood_alcohol_content => 0.4, :ssn => "124-22-8346")
-        Person.create(:blood_alcohol_content => 0.7, :ssn => "125-22-8346")
+        Person.create(:blood_alcohol_content => 0.5)
+        Person.create(:blood_alcohol_content => 0.4)
+        Person.create(:blood_alcohol_content => 0.7)
       end
 
       let(:docs) do
@@ -89,6 +88,33 @@ describe Mongoid::NamedScope do
           { :keep_me_around => true }
         )
       end
+    end
+
+    context "when there is a scope on parent class" do
+      before do
+        Person.class_eval do
+          scope(:important, where( title: 'VIP'))
+        end
+      end
+
+      context "when overwriting scope in child class" do
+
+        before do
+          Doctor.class_eval do
+            scope(:important, where( title: 'Dr.' ))
+          end
+        end
+
+        it "changes the child's scope" do
+          Doctor.important.selector.should eq({ title: 'Dr.' })
+        end
+
+        it "leaves the scope on parent class unchanged" do
+          Person.important.selector.should eq({ title: 'VIP' })
+        end
+
+      end
+
     end
 
     context "when calling scopes on parent classes" do

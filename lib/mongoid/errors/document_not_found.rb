@@ -7,9 +7,9 @@ module Mongoid #:nodoc
     # it will display all of those.
     class DocumentNotFound < MongoidError
 
-      attr_reader :klass, :identifiers
+      attr_reader :identifiers
 
-      # Create hte new error.
+      # Create the new error.
       #
       # @example Create the error.
       #   DocumentNotFound.new(Person, ["1", "2"])
@@ -20,49 +20,34 @@ module Mongoid #:nodoc
       # @param [ Class ] klass The model class.
       # @param [ Hash, Array, Object ] attrs The attributes or ids.
       def initialize(klass, attrs)
-        @klass, @identifiers = klass, attrs
-        message = case attrs
-          when Hash
-            message_for_attributes(attrs)
-          else message_for_ids(attrs)
-        end
-        super(message)
+        @identifiers = attrs
+        super(
+          compose_message(
+            message_key,
+            {
+              :klass => klass.name,
+              :identifiers => identifiers,
+              :attributes => identifiers
+            }
+          )
+        )
       end
 
       private
 
-      # Create the message for id searches.
+      # Create the problem.
       #
-      # @example Create the message.
-      #   error.message_for_ids(1)
+      # @example Create the problem.
+      #   error.problem
       #
-      # @param [ Array, Object ] ids The id or ids.
-      #
-      # @return [ String ] The message.
+      # @return [ String ] The problem.
       #
       # @since 3.0.0
-      def message_for_ids(ids)
-        translate(
-          "document_not_found",
-          { :klass => klass.name, :identifiers => identifiers }
-        )
-      end
-
-      # Create the message for attribute searches.
-      #
-      # @example Create the message.
-      #   error.message_for_attributes(:foo => "bar")
-      #
-      # @param [ Hash ] attrs The attributes.
-      #
-      # @return [ String ] The message.
-      #
-      # @since 3.0.0
-      def message_for_attributes(attrs)
-        translate(
-          "document_with_attributes_not_found",
-          { :klass => klass.name, :attributes => attrs }
-        )
+      def message_key
+        case identifiers
+          when Hash then "document_with_attributes_not_found"
+          else "document_not_found"
+        end
       end
     end
   end

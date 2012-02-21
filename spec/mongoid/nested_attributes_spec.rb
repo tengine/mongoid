@@ -165,7 +165,7 @@ describe Mongoid::NestedAttributes do
         context "when the parent document is persisted" do
 
           let(:person) do
-            Person.create(:ssn => "465-23-0789")
+            Person.create
           end
 
           before do
@@ -594,6 +594,14 @@ describe Mongoid::NestedAttributes do
 
         context "when the nested document is invalid" do
 
+          before(:all) do
+            Person.validates_associated(:pet)
+          end
+
+          after(:all) do
+            Person.reset_callbacks(:validate)
+          end
+
           before do
             person.pet_attributes = { :name => "$$$" }
           end
@@ -835,6 +843,14 @@ describe Mongoid::NestedAttributes do
 
           context "when the nested document is invalid" do
 
+            before(:all) do
+              Person.validates_format_of :ssn, :without => /\$\$\$/
+            end
+
+            after(:all) do
+              Person.reset_callbacks(:validate)
+            end
+
             before do
               animal.person_attributes = { :ssn => '$$$' }
             end
@@ -867,7 +883,7 @@ describe Mongoid::NestedAttributes do
         context "when the parent document is persisted" do
 
           let(:person) do
-            Person.create(:ssn => "465-23-0789")
+            Person.create
           end
 
           before do
@@ -1203,7 +1219,7 @@ describe Mongoid::NestedAttributes do
                       context "when the parent is persisted" do
 
                         let!(:persisted) do
-                          Person.create(:ssn => "123-12-1111") do |p|
+                          Person.create do |p|
                             p.addresses << [ address_one, address_two ]
                           end
                         end
@@ -1359,7 +1375,7 @@ describe Mongoid::NestedAttributes do
                       context "when the parent is persisted" do
 
                         let!(:persisted) do
-                          Person.create(:ssn => "123-12-1111") do |p|
+                          Person.create do |p|
                             p.paranoid_phones << [ phone_one, phone_two ]
                           end
                         end
@@ -1854,6 +1870,14 @@ describe Mongoid::NestedAttributes do
 
         context "when the nested document is invalid" do
 
+          before(:all) do
+            Person.validates_associated(:addresses)
+          end
+
+          after(:all) do
+            Person.reset_callbacks(:validate)
+          end
+
           before do
             person.addresses_attributes = {
               "0" => { :street => '123' }
@@ -2277,6 +2301,14 @@ describe Mongoid::NestedAttributes do
 
         context "when the nested document is invalid" do
 
+          before(:all) do
+            Person.validates_associated(:game)
+          end
+
+          after(:all) do
+            Person.reset_callbacks(:validate)
+          end
+
           before do
             person.game_attributes = { :name => '$$$' }
           end
@@ -2517,6 +2549,15 @@ describe Mongoid::NestedAttributes do
           end
 
           context "when the nested document is invalid" do
+
+            before(:all) do
+              Person.validates_format_of :ssn, :without => /\$\$\$/
+            end
+
+            after(:all) do
+              Person.reset_callbacks(:validate)
+            end
+
             before do
               game.person_attributes = { :ssn => '$$$' }
             end
@@ -2615,7 +2656,7 @@ describe Mongoid::NestedAttributes do
         context "when ids are passed" do
 
           let(:person) do
-            Person.create(:ssn => "987-12-4756")
+            Person.create
           end
 
           before do
@@ -3241,6 +3282,14 @@ describe Mongoid::NestedAttributes do
 
         context "when the nested document is invalid" do
 
+          before(:all) do
+            Person.validates_associated(:posts)
+          end
+
+          after(:all) do
+            Person.reset_callbacks(:validate)
+          end
+
           before do
             person.posts_attributes = {
               "0" => { :title => "$$$" }
@@ -3340,7 +3389,7 @@ describe Mongoid::NestedAttributes do
         context "when ids are passed" do
 
           let(:person) do
-            Person.create(:ssn => "987-12-4756")
+            Person.create
           end
 
           before do
@@ -3898,6 +3947,15 @@ describe Mongoid::NestedAttributes do
         end
 
         context "when the nested document is invalid" do
+
+          before(:all) do
+            Person.validates_associated(:preferences)
+          end
+
+          after(:all) do
+            Person.reset_callbacks(:validate)
+          end
+
           before do
             person.preferences_attributes = {
               "0" => { :name => 'x' }
@@ -3923,7 +3981,7 @@ describe Mongoid::NestedAttributes do
     context "when deleting the child document" do
 
       let(:person) do
-        Person.create(:ssn => "678-23-2223")
+        Person.create
       end
 
       let!(:service) do
@@ -3966,7 +4024,7 @@ describe Mongoid::NestedAttributes do
     context "when nesting multiple levels" do
 
       let(:person) do
-        Person.create(:ssn => "678-23-2222")
+        Person.create
       end
 
       context "when second level is a one to many" do

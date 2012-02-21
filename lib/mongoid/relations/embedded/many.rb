@@ -261,6 +261,31 @@ module Mongoid # :nodoc:
           target
         end
 
+        # Pop documents off the relation. This can be a single document or
+        # multiples, and will automatically persist the changes.
+        #
+        # @example Pop a single document.
+        #   relation.pop
+        #
+        # @example Pop multiple documents.
+        #   relation.pop(3)
+        #
+        # @param [ Integer ] count The number of documents to pop, or 1 if not
+        #   provided.
+        #
+        # @return [ Document, Array<Document> ] The popped document(s).
+        #
+        # @since 3.0.0
+        def pop(count = nil)
+          if count
+            docs = target[target.size - count, target.size]
+            return nil unless docs
+            docs.each { |doc| delete(doc) }
+          else
+            delete(target[-1])
+          end
+        end
+
         # Substitutes the supplied target documents for the existing documents
         # in the relation.
         #
@@ -282,6 +307,7 @@ module Mongoid # :nodoc:
               proxy.clear
             else
               atomically(:$set) do
+                base.delayed_atomic_sets.clear
                 if replacement.first.is_a?(Hash)
                   replacement = Many.builder(base, metadata, replacement).build
                 end

@@ -61,7 +61,7 @@ describe Mongoid::Relations::Referenced::One do
       context "when the parent is not a new record" do
 
         let(:person) do
-          Person.create(:ssn => "437-11-1112")
+          Person.create
         end
 
         let(:game) do
@@ -169,7 +169,7 @@ describe Mongoid::Relations::Referenced::One do
       context "when replacing an existing persisted (dependent: :destroy) relation" do
 
         let!(:person) do
-          Person.create(:ssn => "122-11-1111")
+          Person.create
         end
 
         let!(:game) do
@@ -242,7 +242,7 @@ describe Mongoid::Relations::Referenced::One do
       context "when replacing an existing unpersisted (dependent: :destroy) relation" do
 
         let!(:person) do
-          Person.create(:ssn => "122-11-1111")
+          Person.create
         end
 
         let!(:game) do
@@ -315,7 +315,7 @@ describe Mongoid::Relations::Referenced::One do
       context "when replacing an existing persisted (dependent: :nullify) relation" do
 
         let!(:person) do
-          Person.create(:ssn => "122-11-1111")
+          Person.create
         end
 
         let!(:cat) do
@@ -388,7 +388,7 @@ describe Mongoid::Relations::Referenced::One do
       context "when replacing an existing unpersisted (dependent: :nullify) relation" do
 
         let!(:person) do
-          Person.create(:ssn => "122-11-1111")
+          Person.create
         end
 
         let!(:cat) do
@@ -461,7 +461,7 @@ describe Mongoid::Relations::Referenced::One do
       context "when replacing an existing relation with a new one" do
 
         let!(:person) do
-          Person.create(:ssn => "122-11-1111")
+          Person.create
         end
 
         context "when dependent is destroy" do
@@ -564,7 +564,7 @@ describe Mongoid::Relations::Referenced::One do
       context "when the parent is not a new record" do
 
         let(:person) do
-          Person.create(:ssn => "437-11-1112")
+          Person.create
         end
 
         let(:game) do
@@ -826,7 +826,7 @@ describe Mongoid::Relations::Referenced::One do
     context "when using mass assignment scoping" do
 
       let(:person) do
-        Person.create(:ssn => "456-12-1212")
+        Person.create
       end
 
       let(:account) do
@@ -958,6 +958,49 @@ describe Mongoid::Relations::Referenced::One do
     end
   end
 
+  describe ".criteria" do
+
+    let(:id) do
+      BSON::ObjectId.new
+    end
+
+    context "when the relation is polymorphic" do
+
+      let(:metadata) do
+        Book.relations["rating"]
+      end
+
+      let(:criteria) do
+        described_class.criteria(metadata, id, Book)
+      end
+
+      it "includes the type in the criteria" do
+        criteria.selector.should eq(
+          {
+            "ratable_id"    => id,
+            "ratable_type"  => "Book",
+            "ratable_field" => { "$in" => [ :rating, nil ] }
+          }
+        )
+      end
+    end
+
+    context "when the relation is not polymorphic" do
+
+      let(:metadata) do
+        Person.relations["game"]
+      end
+
+      let(:criteria) do
+        described_class.criteria(metadata, id, Person)
+      end
+
+      it "does not include the type in the criteria" do
+        criteria.selector.should eq({ "person_id" => id })
+      end
+    end
+  end
+
   describe ".eager_load" do
 
     before do
@@ -971,7 +1014,7 @@ describe Mongoid::Relations::Referenced::One do
     context "when the relation is not polymorphic" do
 
       let!(:person) do
-        Person.create(:ssn => "243-12-5243")
+        Person.create
       end
 
       let!(:game) do
@@ -1063,7 +1106,7 @@ describe Mongoid::Relations::Referenced::One do
   describe "#nullify" do
 
     let(:person) do
-      Person.create(:ssn => "777-77-7777")
+      Person.create
     end
 
     let!(:game) do
@@ -1160,7 +1203,7 @@ describe Mongoid::Relations::Referenced::One do
   context "when reloading the relation" do
 
     let!(:person) do
-      Person.create(:ssn => "243-41-9678", :title => "Mr.")
+      Person.create
     end
 
     let!(:game_one) do

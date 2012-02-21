@@ -7,7 +7,7 @@ describe Mongoid::Persistence::Atomic::Pop do
     context "when the field exists" do
 
       let(:person) do
-        Person.create(:ssn => "123-34-3456", :aliases => [ "007", "008", "009" ])
+        Person.create(:aliases => [ "007", "008", "009" ])
       end
 
       context "when popping the last element" do
@@ -76,7 +76,7 @@ describe Mongoid::Persistence::Atomic::Pop do
     context "when the field does not exist" do
 
       let(:person) do
-        Person.create(:ssn => "123-34-3457")
+        Person.create
       end
 
       let!(:popped) do

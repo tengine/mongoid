@@ -32,7 +32,7 @@ module Mongoid #:nodoc:
           return nil if object.blank?
           object = object.getlocal unless Mongoid::Config.use_utc?
           if Mongoid::Config.use_activesupport_time_zone?
-            time_zone = Mongoid::Config.use_utc? ? 'UTC' : ::Time.zone
+            time_zone = Mongoid::Config.use_utc? ? "UTC" : ::Time.zone
             object = object.in_time_zone(time_zone)
           end
           object
@@ -67,7 +67,7 @@ module Mongoid #:nodoc:
         def serialize(object)
           return nil if object.blank?
           begin
-            ::Time.at(convert_to_time(object).to_i).utc
+            ::Time.at(convert_to_time(object).to_f).utc
           rescue ArgumentError
             raise Errors::InvalidTime.new(object)
           end
@@ -89,6 +89,7 @@ module Mongoid #:nodoc:
             when ::String
               time.parse(value)
             when ::DateTime
+              return value if value.utc? && Mongoid.use_utc?
               time.local(value.year, value.month, value.day, value.hour, value.min, value.sec)
             when ::Date
               time.local(value.year, value.month, value.day)
